@@ -19,12 +19,14 @@ public:
   void custom();
   void printStatus(Adafruit_SSD1306 *tela);
 private:
+  void _verificaDirecao();
   int _inputSubir;
   int _inputDescer;
   int _inputAlturaCustom;
   Motor* _motorEsquerda;
   Motor* _motorDireita;
   DIRECAO _direcao;
+  int _lastStep;
 };
 
 #endif

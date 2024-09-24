@@ -12,7 +12,7 @@ public:
   int getSteps();
   int getEncoderPin();
   void begin();
-  float getPositionInCentimeters();
+  float getPosicaoEmCentimetros();
 private:
   int _outputSobe;
   int _outputDesce;
