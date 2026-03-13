@@ -19,9 +19,11 @@ public:
   void calibrar(Adafruit_SSD1306 *tela);
   void printStatus(Adafruit_SSD1306 *tela);
   DIRECAO getDirecao() const;
+  int getErroSincPulsos() const;
 
 private:
   void _verificaDirecao();
+  void _sincronizarMotores();
   int _inputSubir;
   int _inputDescer;
   int _inputAlturaCustom;
@@ -31,6 +33,11 @@ private:
   DIRECAO _serialComando;
   int _lastStep;
   bool _calibrando;
+  unsigned long _ultimaSincronizacao;
+  int _erroSincAtual;
+  static const int GANHO_SINC = 1500;
+  static const int VEL_MIN_SINC = 160;
+  static const int EMERGENCIA_PULSOS = 400;
 };
 
 #endif

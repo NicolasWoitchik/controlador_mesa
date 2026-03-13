@@ -17,6 +17,8 @@ Controles::Controles(int inputSubir, int inputDescer, int inputAlturaCustom, Mot
   this->_direcao = PARAR;
   this->_serialComando = PARAR;
   this->_calibrando = false;
+  this->_ultimaSincronizacao = 0;
+  this->_erroSincAtual = 0;
 }
 
 void Controles::begin() {
@@ -52,6 +54,11 @@ void Controles::loop() {
     this->_motorEsquerda->parar();
     this->_motorDireita->parar();
     dir = 0;
+  }
+
+  if (millis() - _ultimaSincronizacao >= 20) {
+    _sincronizarMotores();
+    _ultimaSincronizacao = millis();
   }
 
   this->_verificaDirecao();
@@ -94,6 +101,51 @@ void Controles::custom() {
 
 DIRECAO Controles::getDirecao() const {
   return _direcao;
+}
+
+int Controles::getErroSincPulsos() const {
+  return _erroSincAtual;
+}
+
+void Controles::_sincronizarMotores() {
+  if (_direcao == PARAR) {
+    _motorEsquerda->setVelocidade(255);
+    _motorDireita->setVelocidade(255);
+    _erroSincAtual = 0;
+    return;
+  }
+
+  int stepsE = _motorEsquerda->getSteps();
+  int stepsD = _motorDireita->getSteps();
+  int pulsosE = _motorEsquerda->getPulsosCalibrados();
+  int pulsosD = _motorDireita->getPulsosCalibrados();
+
+  float posNormE = (float)stepsE / pulsosE;
+  float posNormD = (float)stepsD / pulsosD;
+  float erro = posNormE - posNormD;
+
+  _erroSincAtual = (int)(erro * 6800);
+
+  if (abs(_erroSincAtual) > EMERGENCIA_PULSOS) {
+    _motorEsquerda->parar();
+    _motorDireita->parar();
+    _serialComando = PARAR;
+    Serial.println("{\"tipo\":\"erro\",\"msg\":\"sinc_emergencia\"}");
+    return;
+  }
+
+  if (erro > 0.0005f) {
+    int velE = constrain((int)(255.0f - GANHO_SINC * erro), VEL_MIN_SINC, 255);
+    _motorEsquerda->setVelocidade(velE);
+    _motorDireita->setVelocidade(255);
+  } else if (erro < -0.0005f) {
+    int velD = constrain((int)(255.0f + GANHO_SINC * erro), VEL_MIN_SINC, 255);
+    _motorEsquerda->setVelocidade(255);
+    _motorDireita->setVelocidade(velD);
+  } else {
+    _motorEsquerda->setVelocidade(255);
+    _motorDireita->setVelocidade(255);
+  }
 }
 
 void Controles::calibrar(Adafruit_SSD1306 *tela) {
@@ -204,7 +256,7 @@ void Controles::printStatus(Adafruit_SSD1306 *tela) {
   tela->print(mm);
   tela->print("mm");
 
-  tela->printf(" | %d", dir);
+  tela->printf(" S:%d", _erroSincAtual);
 
   tela->display();
 }

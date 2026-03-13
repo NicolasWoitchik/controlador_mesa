@@ -101,6 +101,24 @@ int Motor::getPulsosCalibrados() {
   return this->_pulsosCalibrados;
 }
 
+int Motor::getVelocidade() const {
+  return _velocidade;
+}
+
+void Motor::setVelocidade(int v) {
+  _velocidade = constrain(v, 0, 255);
+  portENTER_CRITICAL(&_mux);
+  int d = _direcao;
+  portEXIT_CRITICAL(&_mux);
+  if (d == SUBIR) {
+    analogWrite(_outputSobe, _velocidade);
+    analogWrite(_outputDesce, 0);
+  } else if (d == DESCER) {
+    analogWrite(_outputSobe, 0);
+    analogWrite(_outputDesce, _velocidade);
+  }
+}
+
 void Motor::setPulsosCalibrados(int p) {
   this->_pulsosCalibrados = p;
   Preferences prefs;

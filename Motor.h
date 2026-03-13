@@ -20,6 +20,8 @@ public:
   bool isTravado(int timeoutMs);
   int getPulsosCalibrados();
   void setPulsosCalibrados(int p);
+  void setVelocidade(int v);
+  int getVelocidade() const;
 
 private:
   int _outputSobe;

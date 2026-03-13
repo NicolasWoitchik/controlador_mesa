@@ -47,10 +47,14 @@ void publicarSerial() {
   else if (direcaoAtual == DESCER) statusStr = "descendo";
   else statusStr = "parado";
 
-  char json[128];
+  int erroSync = controles.getErroSincPulsos();
+  int velE = esquerda.getVelocidade();
+  int velD = direita.getVelocidade();
+
+  char json[192];
   snprintf(json, sizeof(json),
-    "{\"tipo\":\"status\",\"posicao\":%.2f,\"status\":\"%s\",\"stepsE\":%d,\"stepsD\":%d}",
-    posE, statusStr, stepsE, stepsD);
+    "{\"tipo\":\"status\",\"posicao\":%.2f,\"status\":\"%s\",\"stepsE\":%d,\"stepsD\":%d,\"erroSync\":%d,\"velE\":%d,\"velD\":%d}",
+    posE, statusStr, stepsE, stepsD, erroSync, velE, velD);
   Serial.println(json);
 
   _ultimaDirecao = direcaoAtual;
