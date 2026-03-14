@@ -221,6 +221,14 @@ DIRECAO Controles::getDirecao() const {
   return _direcao;
 }
 
+bool Controles::isBotaoSubir() const {
+  return digitalRead(_inputSubir);
+}
+
+bool Controles::isBotaoDescer() const {
+  return digitalRead(_inputDescer);
+}
+
 int Controles::getErroSincPulsos() const {
   return _erroSincAtual;
 }
@@ -387,6 +395,11 @@ void Controles::printStatus(Adafruit_SSD1306 *tela) {
   tela->print("mm");
 
   tela->printf(" S:%d", _erroSincAtual);
+
+  tela->setCursor(0, 56);
+  tela->setTextSize(1);
+  tela->print(digitalRead(_inputSubir) ? "[^]" : " ^ ");
+  tela->print(digitalRead(_inputDescer) ? "[v]" : " v ");
 
   tela->display();
 }

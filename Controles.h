@@ -21,6 +21,8 @@ public:
   DIRECAO getDirecao() const;
   int getErroSincPulsos() const;
   void irPara(float alvoEmCm);
+  bool isBotaoSubir() const;
+  bool isBotaoDescer() const;
 
 private:
   void _verificaDirecao();

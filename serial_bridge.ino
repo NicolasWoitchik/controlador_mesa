@@ -57,10 +57,13 @@ void publicarSerial() {
   int velE = esquerda.getVelocidade();
   int velD = direita.getVelocidade();
 
-  char json[224];
+  int btnS = controles.isBotaoSubir() ? 1 : 0;
+  int btnD = controles.isBotaoDescer() ? 1 : 0;
+
+  char json[256];
   snprintf(json, sizeof(json),
-    "{\"tipo\":\"status\",\"posicao\":%.2f,\"status\":\"%s\",\"stepsE\":%d,\"stepsD\":%d,\"erroSync\":%d,\"velE\":%d,\"velD\":%d,\"isrE\":%d,\"isrD\":%d}",
-    posE, statusStr, stepsE, stepsD, erroSync, velE, velD, isrBrutoEsquerda, isrBrutoDireita);
+    "{\"tipo\":\"status\",\"posicao\":%.2f,\"status\":\"%s\",\"stepsE\":%d,\"stepsD\":%d,\"erroSync\":%d,\"velE\":%d,\"velD\":%d,\"isrE\":%d,\"isrD\":%d,\"btnS\":%d,\"btnD\":%d}",
+    posE, statusStr, stepsE, stepsD, erroSync, velE, velD, isrBrutoEsquerda, isrBrutoDireita, btnS, btnD);
   Serial.println(json);
 
   _ultimaDirecao = direcaoAtual;
