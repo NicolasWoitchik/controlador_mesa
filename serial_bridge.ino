@@ -21,6 +21,9 @@ void lerComandoSerial() {
     controles.parar();
   } else if (linha == "CALIBRAR") {
     controles.calibrar(&tela);
+  } else if (linha.startsWith("IR:")) {
+    float alvo = linha.substring(3).toFloat();
+    controles.irPara(alvo);
   }
 }
 

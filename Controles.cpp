@@ -19,6 +19,11 @@ Controles::Controles(int inputSubir, int inputDescer, int inputAlturaCustom, Mot
   this->_calibrando = false;
   this->_ultimaSincronizacao = 0;
   this->_erroSincAtual = 0;
+  this->_recuperando = false;
+  this->_stepsEInicio = 0;
+  this->_stepsDInicio = 0;
+  this->_modoPreset = false;
+  this->_alvoEmCm = 0.0f;
 }
 
 void Controles::begin() {
@@ -32,12 +37,95 @@ void Controles::loop() {
   bool isSubir = digitalRead(this->_inputSubir);
   bool isDescer = digitalRead(this->_inputDescer);
 
+  // Botao fisico cancela recuperacao
+  if (_recuperando && (isSubir || isDescer)) {
+    _recuperando = false;
+    _motorEsquerda->parar();
+    _motorDireita->parar();
+  }
+
+  // Durante recuperacao, volta para posicao inicial
+  if (_recuperando) {
+    int stepsE = _motorEsquerda->getSteps();
+    if (stepsE > _stepsEInicio) {
+      _motorEsquerda->descer();
+      _motorDireita->descer();
+      dir = -1;
+    } else if (stepsE < _stepsEInicio) {
+      _motorEsquerda->subir();
+      _motorDireita->subir();
+      dir = 1;
+    } else {
+      _motorEsquerda->parar();
+      _motorDireita->parar();
+      _recuperando = false;
+      dir = 0;
+      Serial.println("{\"tipo\":\"info\",\"msg\":\"recuperacao_concluida\"}");
+    }
+    this->_verificaDirecao();
+    return;
+  }
+
+  // Modo preset: mover para altura alvo
+  if (_modoPreset) {
+    if (isSubir || isDescer) {
+      _modoPreset = false;
+      _motorEsquerda->parar();
+      _motorDireita->parar();
+      dir = 0;
+      this->_verificaDirecao();
+      return;
+    }
+    float posAtual = _motorEsquerda->getPosicaoEmCentimetros();
+    float diff = _alvoEmCm - posAtual;
+    if (abs(diff) < PRESET_TOLERANCIA_CM) {
+      _motorEsquerda->parar();
+      _motorDireita->parar();
+      _modoPreset = false;
+      dir = 0;
+      char json[80];
+      snprintf(json, sizeof(json),
+        "{\"tipo\":\"info\",\"msg\":\"preset_concluido\",\"posicao\":%.2f}", posAtual);
+      Serial.println(json);
+    } else if (diff > 0) {
+      if (_direcao == PARAR) {
+        _stepsEInicio = _motorEsquerda->getSteps();
+        _stepsDInicio = _motorDireita->getSteps();
+      }
+      _motorEsquerda->subir();
+      _motorDireita->subir();
+      dir = 1;
+    } else {
+      if (_direcao == PARAR) {
+        _stepsEInicio = _motorEsquerda->getSteps();
+        _stepsDInicio = _motorDireita->getSteps();
+      }
+      _motorEsquerda->descer();
+      _motorDireita->descer();
+      dir = -1;
+    }
+    if (millis() - _ultimaSincronizacao >= 20) {
+      _sincronizarMotores();
+      _ultimaSincronizacao = millis();
+    }
+    this->_verificaDirecao();
+    return;
+  }
+
   if (isSubir && !isDescer) {
+    if (_direcao == PARAR) {
+      _stepsEInicio = _motorEsquerda->getSteps();
+      _stepsDInicio = _motorDireita->getSteps();
+    }
     _serialComando = PARAR;  // botao cancela comando serial
     this->_motorEsquerda->subir();
     this->_motorDireita->subir();
     dir = 1;
   } else if (!isSubir && isDescer) {
+    if (_direcao == PARAR) {
+      _stepsEInicio = _motorEsquerda->getSteps();
+      _stepsDInicio = _motorDireita->getSteps();
+    }
     _serialComando = PARAR;  // botao cancela comando serial
     this->_motorEsquerda->descer();
     this->_motorDireita->descer();
@@ -79,12 +167,18 @@ void Controles::_verificaDirecao() {
 }
 
 void Controles::subir() {
+  _stepsEInicio = _motorEsquerda->getSteps();
+  _stepsDInicio = _motorDireita->getSteps();
+  _recuperando = false;
   _serialComando = SUBIR;
   this->_motorEsquerda->subir();
   this->_motorDireita->subir();
 }
 
 void Controles::descer() {
+  _stepsEInicio = _motorEsquerda->getSteps();
+  _stepsDInicio = _motorDireita->getSteps();
+  _recuperando = false;
   _serialComando = DESCER;
   this->_motorEsquerda->descer();
   this->_motorDireita->descer();
@@ -92,8 +186,25 @@ void Controles::descer() {
 
 void Controles::parar() {
   _serialComando = PARAR;
+  _modoPreset = false;
   this->_motorEsquerda->parar();
   this->_motorDireita->parar();
+}
+
+void Controles::irPara(float alvoEmCm) {
+  if (alvoEmCm < 84.0f || alvoEmCm > 144.0f) {
+    Serial.println("{\"tipo\":\"erro\",\"msg\":\"preset_fora_de_faixa\"}");
+    return;
+  }
+  _alvoEmCm = alvoEmCm;
+  _stepsEInicio = _motorEsquerda->getSteps();
+  _stepsDInicio = _motorDireita->getSteps();
+  _modoPreset = true;
+  _recuperando = false;
+  char json[72];
+  snprintf(json, sizeof(json),
+    "{\"tipo\":\"info\",\"msg\":\"preset_iniciado\",\"alvo\":%.1f}", alvoEmCm);
+  Serial.println(json);
 }
 
 void Controles::custom() {
@@ -108,6 +219,8 @@ int Controles::getErroSincPulsos() const {
 }
 
 void Controles::_sincronizarMotores() {
+  if (_recuperando) return;
+
   if (_direcao == PARAR) {
     _motorEsquerda->setVelocidade(255);
     _motorDireita->setVelocidade(255);
@@ -130,6 +243,8 @@ void Controles::_sincronizarMotores() {
     _motorEsquerda->parar();
     _motorDireita->parar();
     _serialComando = PARAR;
+    _recuperando = true;
+    _modoPreset = false;
     Serial.println("{\"tipo\":\"erro\",\"msg\":\"sinc_emergencia\"}");
     return;
   }

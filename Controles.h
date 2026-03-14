@@ -20,6 +20,7 @@ public:
   void printStatus(Adafruit_SSD1306 *tela);
   DIRECAO getDirecao() const;
   int getErroSincPulsos() const;
+  void irPara(float alvoEmCm);
 
 private:
   void _verificaDirecao();
@@ -35,6 +36,12 @@ private:
   bool _calibrando;
   unsigned long _ultimaSincronizacao;
   int _erroSincAtual;
+  bool _recuperando;
+  int _stepsEInicio;
+  int _stepsDInicio;
+  bool _modoPreset;
+  float _alvoEmCm;
+  static constexpr float PRESET_TOLERANCIA_CM = 0.3f;
   static const int GANHO_SINC = 1500;
   static const int VEL_MIN_SINC = 160;
   static const int EMERGENCIA_PULSOS = 400;
