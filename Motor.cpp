@@ -18,15 +18,23 @@ void Motor::begin() {
   pinMode(this->_outputSobe, OUTPUT);
   pinMode(this->_outputDesce, OUTPUT);
   pinMode(this->_encoderPin, INPUT);
-  this->_steps = 0;
 
   // Carrega pulsos calibrados da NVS (Preferences)
   Preferences prefs;
-  char key[8];
-  snprintf(key, sizeof(key), "p%d", this->_encoderPin);
+  char keyP[8], keyS[8];
+  snprintf(keyP, sizeof(keyP), "p%d", this->_encoderPin);
+  snprintf(keyS, sizeof(keyS), "s%d", this->_encoderPin);
   prefs.begin("motor", true);  // read-only
-  this->_pulsosCalibrados = prefs.getInt(key, 6800);
+  this->_pulsosCalibrados = prefs.getInt(keyP, 6800);
+  int savedSteps = prefs.getInt(keyS, 0);
   prefs.end();
+
+  // Valida: steps salvos devem estar entre 0 e pulsosCalibrados
+  if (savedSteps >= 0 && savedSteps <= this->_pulsosCalibrados) {
+    this->_steps = savedSteps;
+  } else {
+    this->_steps = 0;
+  }
 }
 
 void Motor::subir() {
@@ -117,6 +125,18 @@ void Motor::setVelocidade(int v) {
     analogWrite(_outputSobe, 0);
     analogWrite(_outputDesce, _velocidade);
   }
+}
+
+void Motor::saveSteps() {
+  portENTER_CRITICAL(&_mux);
+  int s = this->_steps;
+  portEXIT_CRITICAL(&_mux);
+  Preferences prefs;
+  char key[8];
+  snprintf(key, sizeof(key), "s%d", this->_encoderPin);
+  prefs.begin("motor", false);
+  prefs.putInt(key, s);
+  prefs.end();
 }
 
 void Motor::setPulsosCalibrados(int p) {

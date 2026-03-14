@@ -22,6 +22,7 @@ public:
   void setPulsosCalibrados(int p);
   void setVelocidade(int v);
   int getVelocidade() const;
+  void saveSteps();
 
 private:
   int _outputSobe;

@@ -154,6 +154,7 @@ void Controles::loop() {
 
 void Controles::_verificaDirecao() {
   int currentStep = this->_motorEsquerda->getSteps();
+  DIRECAO anterior = this->_direcao;
 
   if (currentStep > this->_lastStep) {
     this->_direcao = SUBIR;
@@ -161,6 +162,12 @@ void Controles::_verificaDirecao() {
     this->_direcao = DESCER;
   } else {
     this->_direcao = PARAR;
+  }
+
+  // Salva posicao na NVS ao parar
+  if (anterior != PARAR && this->_direcao == PARAR) {
+    _motorEsquerda->saveSteps();
+    _motorDireita->saveSteps();
   }
 
   this->_lastStep = currentStep;
@@ -330,6 +337,8 @@ void Controles::calibrar(Adafruit_SSD1306 *tela) {
   // 10. Salvar via Preferences (NVS)
   _motorEsquerda->setPulsosCalibrados(pulsosE);
   _motorDireita->setPulsosCalibrados(pulsosD);
+  _motorEsquerda->saveSteps();
+  _motorDireita->saveSteps();
 
   // 11. Exibir resultado e publicar
   tela->clearDisplay();
