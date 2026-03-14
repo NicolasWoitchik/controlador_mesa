@@ -39,7 +39,12 @@ volatile unsigned long direitaUltimoPassoTime = 0;
 volatile unsigned long esquerdaUltimoPassoTime = 0;
 int tempoDeEspera = 4000;
 
+// Contadores brutos de ISR (sem debounce) — para diagnostico
+volatile int isrBrutoEsquerda = 0;
+volatile int isrBrutoDireita = 0;
+
 void IRAM_ATTR contaPassosEsquerda(void) {
+  isrBrutoEsquerda++;
   if (micros() - esquerdaUltimoPassoTime > tempoDeEspera) {
     esquerda.step();
     esquerdaUltimoPassoTime = micros();
@@ -47,6 +52,7 @@ void IRAM_ATTR contaPassosEsquerda(void) {
 }
 
 void IRAM_ATTR contaPassosDireita(void) {
+  isrBrutoDireita++;
   if (micros() - direitaUltimoPassoTime > tempoDeEspera) {
     direita.step();
     direitaUltimoPassoTime = micros();

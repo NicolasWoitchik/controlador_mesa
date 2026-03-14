@@ -245,7 +245,13 @@ void Controles::_sincronizarMotores() {
     _serialComando = PARAR;
     _recuperando = true;
     _modoPreset = false;
-    Serial.println("{\"tipo\":\"erro\",\"msg\":\"sinc_emergencia\"}");
+    // Distingue encoder inativo (um lado zerado) de desincronizacao real
+    bool encoderInativo = (stepsD == _stepsDInicio) || (stepsE == _stepsEInicio);
+    if (encoderInativo) {
+      Serial.println("{\"tipo\":\"erro\",\"msg\":\"encoder_inativo\"}");
+    } else {
+      Serial.println("{\"tipo\":\"erro\",\"msg\":\"sinc_emergencia\"}");
+    }
     return;
   }
 

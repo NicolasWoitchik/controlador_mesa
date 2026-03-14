@@ -35,10 +35,13 @@ void publicarSerial() {
 
   bool mudouDirecao = (direcaoAtual != _ultimaDirecao);
   bool mudouPosicao = (posE - _ultimaPosicao > 0.05f || _ultimaPosicao - posE > 0.05f);
-  bool tempoPassou = (agora - _ultimaPublicacao) > 500;
+  bool tempoPassou500  = (agora - _ultimaPublicacao) > 500;
+  bool tempoPassou5s   = (agora - _ultimaPublicacao) > 5000;
 
-  // Publica se mudou algo, ou a cada 500ms enquanto em movimento
-  if (!mudouDirecao && !mudouPosicao && !(direcaoAtual != PARAR && tempoPassou)) {
+  // Publica se: mudou algo, a cada 500ms em movimento, ou a cada 5s parada (para o HA)
+  if (!mudouDirecao && !mudouPosicao
+      && !(direcaoAtual != PARAR && tempoPassou500)
+      && !tempoPassou5s) {
     return;
   }
 
@@ -54,10 +57,10 @@ void publicarSerial() {
   int velE = esquerda.getVelocidade();
   int velD = direita.getVelocidade();
 
-  char json[192];
+  char json[224];
   snprintf(json, sizeof(json),
-    "{\"tipo\":\"status\",\"posicao\":%.2f,\"status\":\"%s\",\"stepsE\":%d,\"stepsD\":%d,\"erroSync\":%d,\"velE\":%d,\"velD\":%d}",
-    posE, statusStr, stepsE, stepsD, erroSync, velE, velD);
+    "{\"tipo\":\"status\",\"posicao\":%.2f,\"status\":\"%s\",\"stepsE\":%d,\"stepsD\":%d,\"erroSync\":%d,\"velE\":%d,\"velD\":%d,\"isrE\":%d,\"isrD\":%d}",
+    posE, statusStr, stepsE, stepsD, erroSync, velE, velD, isrBrutoEsquerda, isrBrutoDireita);
   Serial.println(json);
 
   _ultimaDirecao = direcaoAtual;
