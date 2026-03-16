@@ -1,0 +1,22 @@
+[Unit]
+Description=Mesa Controlador RPi3 (Node.js + TypeScript)
+After=network.target pigpiod.service
+Requires=pigpiod.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/controlador_mesa/rpi3
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+Environment="MESA_MQTT_BROKER=192.168.15.20"
+Environment="MESA_MQTT_PORT=1883"
+Environment="MESA_MQTT_USER=mesa_pc"
+Environment="MESA_MQTT_PASS=mesa"
+
+[Install]
+WantedBy=multi-user.target
