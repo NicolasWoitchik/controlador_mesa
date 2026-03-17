@@ -1,9 +1,26 @@
 import * as fs from 'fs';
-import * as pigpio from 'pigpio';
 import { Motor, CalibracaoMotor, MotorId } from './Motor';
 import { Controles } from './Controles';
 import { MqttClient } from './MqttClient';
 import { PINS, CALIBRACAO_PATH, PUBLICACAO } from './config';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pigpioLib = require('pigpio-client');
+
+// ---------------------------------------------------------------------------
+// Conecta ao pigpiod via socket TCP (sem addon nativo — funciona com qualquer Node)
+// ---------------------------------------------------------------------------
+
+function conectarPigpio(): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const pig = pigpioLib.pigpio({ host: 'localhost', port: 8888, timeout: 2 });
+    pig.once('connected', () => {
+      console.log('[pigpio] Conectado ao pigpiod');
+      resolve(pig);
+    });
+    pig.once('error', (err: Error) => reject(err));
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Carrega calibração salva (graceful fallback se não existir)
@@ -28,14 +45,17 @@ function carregarCalibracao(): CalibracaoFile {
 async function main(): Promise<void> {
   console.log('[Init] Controlador Mesa RPi3 iniciando...');
 
+  // Conecta ao daemon pigpiod (deve estar rodando: sudo pigpiod)
+  const pig = await conectarPigpio();
+
   const calibData = carregarCalibracao();
 
   // Motores
-  const motorEsq = new Motor(PINS.MOTOR_ESQ_SOBE,  PINS.MOTOR_ESQ_DESCE, PINS.ENCODER_ESQ, 'esquerda');
-  const motorDir = new Motor(PINS.MOTOR_DIR_SOBE, PINS.MOTOR_DIR_DESCE, PINS.ENCODER_DIR, 'direita');
+  const motorEsq = new Motor(PINS.MOTOR_ESQ_SOBE,  PINS.MOTOR_ESQ_DESCE, PINS.ENCODER_ESQ, 'esquerda', pig);
+  const motorDir = new Motor(PINS.MOTOR_DIR_SOBE, PINS.MOTOR_DIR_DESCE, PINS.ENCODER_DIR, 'direita',  pig);
 
-  motorEsq.begin(calibData);
-  motorDir.begin(calibData);
+  await motorEsq.begin(calibData);
+  await motorDir.begin(calibData);
 
   // MQTT
   const mqttClient = new MqttClient();
@@ -47,8 +67,9 @@ async function main(): Promise<void> {
     PINS.BTN_DESCER,
     motorEsq,
     motorDir,
+    pig,
   );
-  controles.begin();
+  await controles.begin();
 
   // Roteamento de comandos MQTT → Controles
   mqttClient.onComando((cmd) => {
@@ -76,7 +97,7 @@ async function main(): Promise<void> {
   let ultimaPosicao = 0;
   let ultimaPublicacao = 0;
 
-  setInterval(() => {
+  const pubInterval = setInterval(() => {
     const payload = controles.getStatusPayload();
     const agora = Date.now();
     const emMovimento = payload.status !== 'parado';
@@ -95,8 +116,8 @@ async function main(): Promise<void> {
       mqttClient.publishStepsEsquerda(payload.stepsE);
       mqttClient.publishStepsDireita(payload.stepsD);
 
-      ultimaDirecao  = payload.status;
-      ultimaPosicao  = payload.posicao;
+      ultimaDirecao    = payload.status;
+      ultimaPosicao    = payload.posicao;
       ultimaPublicacao = agora;
     }
   }, 100);
@@ -113,11 +134,15 @@ async function main(): Promise<void> {
     if (isShuttingDown) return;
     isShuttingDown = true;
     console.log(`[Shutdown] Sinal ${signal} recebido — encerrando...`);
+    // Safety net: força saída após 3s caso alguma operação async trave
+    setTimeout(() => process.exit(0), 3000).unref();
+    clearInterval(pubInterval);
     controles.teardown();
     motorEsq.teardown();
     motorDir.teardown();
-    await mqttClient.disconnect();
-    pigpio.terminate();
+    await mqttClient.disconnect().catch(() => {});
+    // Desconecta do pigpiod (não encerra o daemon, apenas fecha o socket)
+    try { (pig as any).end(() => {}); } catch { /* noop */ }
     process.exit(0);
   }
 
