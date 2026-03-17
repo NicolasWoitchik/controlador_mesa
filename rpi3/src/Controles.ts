@@ -1,4 +1,3 @@
-import { Gpio } from 'pigpio';
 import { Motor, Direcao } from './Motor';
 import { MqttClient, MqttComando } from './MqttClient';
 import { SINC, PRESET, MOTOR } from './config';
@@ -22,9 +21,17 @@ export class Controles {
   private readonly _motorDireita: Motor;
   private readonly _pinSubir: number;
   private readonly _pinDescer: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private readonly _pig: any;
 
-  private _gpioBtnSubir!: Gpio;
-  private _gpioBtnDescer!: Gpio;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _gpioBtnSubir!: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private _gpioBtnDescer!: any;
+
+  // Estado cacheado dos botões (atualizado via notify, lido de forma síncrona no loop)
+  private _btnSubirLevel: number = 0;
+  private _btnDescerLevel: number = 0;
 
   private _mqttComando: MqttComando = 'PARAR';
   private _calibrando: boolean = false;
@@ -44,22 +51,39 @@ export class Controles {
     pinDescer: number,
     motorEsquerda: Motor,
     motorDireita: Motor,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pig: any,
   ) {
     this._pinSubir = pinSubir;
     this._pinDescer = pinDescer;
     this._motorEsquerda = motorEsquerda;
     this._motorDireita = motorDireita;
+    this._pig = pig;
   }
 
-  begin(): void {
-    // Botões: pull-down → lêem HIGH quando pressionados (ligados ao 3.3V)
-    this._gpioBtnSubir  = new Gpio(this._pinSubir,  { mode: Gpio.INPUT, pullUpDown: Gpio.PUD_DOWN });
-    this._gpioBtnDescer = new Gpio(this._pinDescer, { mode: Gpio.INPUT, pullUpDown: Gpio.PUD_DOWN });
+  async begin(): Promise<void> {
+    // Botões: pull-down → nível HIGH quando pressionados (ligados ao 3.3V)
+    this._gpioBtnSubir  = this._pig.gpio(this._pinSubir);
+    this._gpioBtnDescer = this._pig.gpio(this._pinDescer);
+
+    await this._gpioBtnSubir.modeSet('input');
+    await this._gpioBtnSubir.pullUpDown(1);  // PUD_DOWN = 1
+
+    await this._gpioBtnDescer.modeSet('input');
+    await this._gpioBtnDescer.pullUpDown(1);
+
+    // Lê estado inicial dos botões
+    this._btnSubirLevel  = await this._gpioBtnSubir.read();
+    this._btnDescerLevel = await this._gpioBtnDescer.read();
+
+    // Mantém estado atualizado via notify (sem polling)
+    this._gpioBtnSubir.notify((level: number) => { this._btnSubirLevel = level; });
+    this._gpioBtnDescer.notify((level: number) => { this._btnDescerLevel = level; });
 
     // Loop de leitura de botões + controle: 5ms (200 Hz)
     this._pollInterval = setInterval(() => this._loopStep(), 5);
 
-    // Loop de sincronização: 20ms (50 Hz) — porta direta do C++
+    // Loop de sincronização: 20ms (50 Hz)
     this._sincInterval = setInterval(() => this._sincronizarMotores(), SINC.INTERVALO_MS);
   }
 
@@ -163,9 +187,9 @@ export class Controles {
     const posicao  = this._motorEsquerda.getPosicaoEmCentimetros();
 
     let status: string;
-    if (direcaoE === 'SUBIR')   status = 'subindo';
+    if (direcaoE === 'SUBIR')       status = 'subindo';
     else if (direcaoE === 'DESCER') status = 'descendo';
-    else status = 'parado';
+    else                            status = 'parado';
 
     return {
       status,
@@ -185,6 +209,8 @@ export class Controles {
     if (this._sincInterval) clearInterval(this._sincInterval);
     this._motorEsquerda.parar();
     this._motorDireita.parar();
+    try { this._gpioBtnSubir?.endNotify(); } catch { /* noop */ }
+    try { this._gpioBtnDescer?.endNotify(); } catch { /* noop */ }
   }
 
   // ---------------------------------------------------------------------------
@@ -236,7 +262,7 @@ export class Controles {
       if (btnSubir && !btnDescer) {
         if (this._mqttComando !== 'SUBIR') {
           this._salvarStepsInicio();
-          this._mqttComando = 'PARAR'; // cancela comando serial
+          this._mqttComando = 'PARAR';
         }
         this._motorEsquerda.subir();
         this._motorDireita.subir();
@@ -289,7 +315,7 @@ export class Controles {
   }
 
   // ---------------------------------------------------------------------------
-  // Sincronização proporcional (20ms) — porta direta do C++
+  // Sincronização proporcional (20ms)
   // ---------------------------------------------------------------------------
 
   private _sincronizarMotores(): void {
@@ -316,7 +342,6 @@ export class Controles {
     const pulsosRef = (pulsosE + pulsosD) / 2;
     this._erroSincAtual = Math.round(erro * pulsosRef);
 
-    // Detecta encoder inativo (um lado ficou em stepsInicio)
     const encoderInativo =
       stepsE === this._stepsEInicio || stepsD === this._stepsDInicio;
 
@@ -329,19 +354,15 @@ export class Controles {
       return;
     }
 
-    // Controle proporcional
     if (erro > SINC.THRESHOLD) {
-      // Esquerda adiantada → freia esquerda
       const velE = Math.max(SINC.VEL_MIN, Math.min(255, Math.round(255 - SINC.GANHO * erro)));
       this._motorEsquerda.setVelocidade(velE);
       this._motorDireita.setVelocidade(MOTOR.VEL_DEFAULT);
     } else if (erro < -SINC.THRESHOLD) {
-      // Direita adiantada → freia direita
       const velD = Math.max(SINC.VEL_MIN, Math.min(255, Math.round(255 + SINC.GANHO * erro)));
       this._motorEsquerda.setVelocidade(MOTOR.VEL_DEFAULT);
       this._motorDireita.setVelocidade(velD);
     } else {
-      // Sincronizados
       this._motorEsquerda.setVelocidade(MOTOR.VEL_DEFAULT);
       this._motorDireita.setVelocidade(MOTOR.VEL_DEFAULT);
     }
@@ -357,11 +378,11 @@ export class Controles {
   }
 
   private _isBotaoSubir(): boolean {
-    return this._gpioBtnSubir.digitalRead() === 1;
+    return this._btnSubirLevel === 1;
   }
 
   private _isBotaoDescer(): boolean {
-    return this._gpioBtnDescer.digitalRead() === 1;
+    return this._btnDescerLevel === 1;
   }
 
   private _waitUntilStalled(timeoutMs: number, maxWaitMs = 90_000): Promise<void> {
