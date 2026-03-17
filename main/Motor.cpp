@@ -10,6 +10,8 @@ Motor::Motor(int outputSobe, int outputDesce, int encoderPin) {
   this->_direcao = PARAR;
   this->_ultimoPulsoTime = 0;
   this->_pulsosCalibrados = 6800;
+  this->_taskHandle = nullptr;
+  this->_ultimoStepAmostrado = 0;
 }
 
 void Motor::begin() {
@@ -116,4 +118,29 @@ void Motor::setPulsosCalibrados(int p) {
   prefs.begin("motor", false);
   prefs.putInt(key, p);
   prefs.end();
+}
+
+void Motor::startEncoderTask() {
+  _ultimoStepAmostrado = getSteps();
+  xTaskCreatePinnedToCore(
+    _tarefaEncoder,
+    "encoderTask",
+    2048,
+    this,
+    1,
+    &_taskHandle,
+    0  // Core 0
+  );
+}
+
+void Motor::_tarefaEncoder(void* arg) {
+  Motor* m = static_cast<Motor*>(arg);
+  for (;;) {
+    int s = m->getSteps();
+    if (s != m->_ultimoStepAmostrado) {
+      m->_ultimoPulsoTime = millis();
+      m->_ultimoStepAmostrado = s;
+    }
+    vTaskDelay(pdMS_TO_TICKS(20));
+  }
 }

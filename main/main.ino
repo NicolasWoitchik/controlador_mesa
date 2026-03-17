@@ -41,6 +41,8 @@ void setup() {
   esquerda.begin();
   direita.begin();
   controles.begin();
+  esquerda.startEncoderTask();
+  direita.startEncoderTask();
 
   if (!tela.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println("SSD1306 allocation failed");

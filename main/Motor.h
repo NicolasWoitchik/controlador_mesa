@@ -23,8 +23,10 @@ public:
   void setVelocidade(int v);
   int getVelocidade() const;
   void saveSteps();
+  void startEncoderTask();
 
 private:
+  static void _tarefaEncoder(void* arg);
   int _outputSobe;
   int _outputDesce;
   int _velocidade;
@@ -33,6 +35,8 @@ private:
   ESP32Encoder _encoder;
   volatile unsigned long _ultimoPulsoTime;
   int _pulsosCalibrados;
+  TaskHandle_t _taskHandle;
+  int _ultimoStepAmostrado;
 };
 
 #endif
