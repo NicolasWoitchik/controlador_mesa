@@ -51,7 +51,11 @@ export class Motor {
     this._gpioEncoder.glitchFilter(1000);
     this._gpioEncoder.on('alert', (level: number) => {
       if (level === 1) {
-        this._steps++;
+        if (this._direcao === 'SUBIR') {
+          this._steps = Math.min(this._steps + 1, this._pulsosCalibrados);
+        } else if (this._direcao === 'DESCER') {
+          this._steps = Math.max(this._steps - 1, 0);
+        }
         this._ultimoPulsoTime = Date.now();
       }
     });

@@ -67,11 +67,11 @@ export class MqttClient {
   }
 
   publishStatus(status: string): void {
-    this._publish('mesa/status', status);
+    this._publish('mesa/status', status, { retain: true });
   }
 
   publishPosicao(cm: number): void {
-    this._publish('mesa/posicao', cm.toFixed(2));
+    this._publish('mesa/posicao', cm.toFixed(2), { retain: true });
   }
 
   publishStepsEsquerda(steps: number): void {

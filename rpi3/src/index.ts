@@ -107,12 +107,15 @@ async function main(): Promise<void> {
   // Shutdown graceful
   // ---------------------------------------------------------------------------
 
+  let isShuttingDown = false;
+
   async function shutdown(signal: string): Promise<void> {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     console.log(`[Shutdown] Sinal ${signal} recebido — encerrando...`);
     controles.teardown();
     motorEsq.teardown();
     motorDir.teardown();
-    mqttClient.publishAvailable(false);
     await mqttClient.disconnect();
     pigpio.terminate();
     process.exit(0);

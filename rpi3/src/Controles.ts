@@ -39,11 +39,6 @@ export class Controles {
   private _pollInterval: ReturnType<typeof setInterval> | null = null;
   private _sincInterval: ReturnType<typeof setInterval> | null = null;
 
-  // Controle de publicação
-  private _ultimaDirecao: Direcao = 'PARAR';
-  private _ultimaPosicao: number = 0;
-  private _ultimaPublicacao: number = 0;
-
   constructor(
     pinSubir: number,
     pinDescer: number,
@@ -112,53 +107,55 @@ export class Controles {
     this._mqttComando = 'PARAR';
     this._modoPreset = false;
 
-    console.log('[Calibracao] Iniciando — descendo...');
-    mqtt.publishInfo({ tipo: 'status', status: 'calibrando', fase: 'descendo' });
+    try {
+      console.log('[Calibracao] Iniciando — descendo...');
+      mqtt.publishInfo({ tipo: 'status', status: 'calibrando', fase: 'descendo' });
 
-    // Fase 1: descer até travar
-    this._motorEsquerda.setVelocidade(MOTOR.VEL_DEFAULT);
-    this._motorDireita.setVelocidade(MOTOR.VEL_DEFAULT);
-    this._motorEsquerda.descer();
-    this._motorDireita.descer();
+      // Fase 1: descer até travar
+      this._motorEsquerda.setVelocidade(MOTOR.VEL_DEFAULT);
+      this._motorDireita.setVelocidade(MOTOR.VEL_DEFAULT);
+      this._motorEsquerda.descer();
+      this._motorDireita.descer();
 
-    await _sleep(2000);
-    await this._waitUntilStalled(MOTOR.ENCODER_TIMEOUT_MS);
+      await _sleep(2000);
+      await this._waitUntilStalled(MOTOR.ENCODER_TIMEOUT_MS);
 
-    this._motorEsquerda.parar();
-    this._motorDireita.parar();
-    await _sleep(300);
+      this._motorEsquerda.parar();
+      this._motorDireita.parar();
+      await _sleep(300);
 
-    // Zera encoders na posição mínima
-    this._motorEsquerda.setSteps(0);
-    this._motorDireita.setSteps(0);
+      // Zera encoders na posição mínima
+      this._motorEsquerda.setSteps(0);
+      this._motorDireita.setSteps(0);
 
-    // Fase 2: subir até travar
-    console.log('[Calibracao] Subindo para medir...');
-    mqtt.publishInfo({ tipo: 'status', status: 'calibrando', fase: 'subindo' });
+      // Fase 2: subir até travar
+      console.log('[Calibracao] Subindo para medir...');
+      mqtt.publishInfo({ tipo: 'status', status: 'calibrando', fase: 'subindo' });
 
-    await _sleep(500);
-    this._motorEsquerda.subir();
-    this._motorDireita.subir();
+      await _sleep(500);
+      this._motorEsquerda.subir();
+      this._motorDireita.subir();
 
-    await _sleep(2000);
-    await this._waitUntilStalled(MOTOR.ENCODER_TIMEOUT_MS);
+      await _sleep(2000);
+      await this._waitUntilStalled(MOTOR.ENCODER_TIMEOUT_MS);
 
-    const pulsosE = this._motorEsquerda.getSteps();
-    const pulsosD = this._motorDireita.getSteps();
+      const pulsosE = this._motorEsquerda.getSteps();
+      const pulsosD = this._motorDireita.getSteps();
 
-    this._motorEsquerda.parar();
-    this._motorDireita.parar();
+      this._motorEsquerda.parar();
+      this._motorDireita.parar();
 
-    // Salva calibração
-    this._motorEsquerda.setPulsosCalibrados(pulsosE);
-    this._motorDireita.setPulsosCalibrados(pulsosD);
+      // Salva calibração
+      this._motorEsquerda.setPulsosCalibrados(pulsosE);
+      this._motorDireita.setPulsosCalibrados(pulsosD);
 
-    await this._salvarStepsJson();
+      await this._salvarStepsJson();
 
-    console.log(`[Calibracao] Concluída — E:${pulsosE} D:${pulsosD}`);
-    mqtt.publishCalibration({ pulsosE, pulsosD });
-
-    this._calibrando = false;
+      console.log(`[Calibracao] Concluída — E:${pulsosE} D:${pulsosD}`);
+      mqtt.publishCalibration({ pulsosE, pulsosD });
+    } finally {
+      this._calibrando = false;
+    }
   }
 
   getStatusPayload(): StatusPayload {
@@ -307,11 +304,17 @@ export class Controles {
     const pulsosE = this._motorEsquerda.getPulsosCalibrados();
     const pulsosD = this._motorDireita.getPulsosCalibrados();
 
+    if (pulsosE === 0 || pulsosD === 0) {
+      console.error('[Sinc] pulsosCalibrados inválido — sincronização abortada');
+      return;
+    }
+
     const deltaE = (stepsE - this._stepsEInicio) / pulsosE;
     const deltaD = (stepsD - this._stepsDInicio) / pulsosD;
     const erro   = deltaE - deltaD;
 
-    this._erroSincAtual = Math.round(erro * 6800);
+    const pulsosRef = (pulsosE + pulsosD) / 2;
+    this._erroSincAtual = Math.round(erro * pulsosRef);
 
     // Detecta encoder inativo (um lado ficou em stepsInicio)
     const encoderInativo =
@@ -361,15 +364,16 @@ export class Controles {
     return this._gpioBtnDescer.digitalRead() === 1;
   }
 
-  private async _waitUntilStalled(timeoutMs: number): Promise<void> {
-    return new Promise((resolve) => {
+  private _waitUntilStalled(timeoutMs: number, maxWaitMs = 90_000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
       const check = setInterval(() => {
-        if (
-          this._motorEsquerda.isTravado(timeoutMs) &&
-          this._motorDireita.isTravado(timeoutMs)
-        ) {
+        if (this._motorEsquerda.isTravado(timeoutMs) && this._motorDireita.isTravado(timeoutMs)) {
           clearInterval(check);
           resolve();
+        } else if (Date.now() - start > maxWaitMs) {
+          clearInterval(check);
+          reject(new Error('Timeout: motor não travou dentro do tempo esperado'));
         }
       }, 50);
     });
