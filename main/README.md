@@ -57,13 +57,13 @@ Envie uma altura em cm via MQTT (`mesa/preset`) e o controlador move a mesa auto
 
 ## Hardware necessário
 
-| Componente | Descrição |
-|-----------|-----------|
-| Raspberry Pi 3 (ou superior) | Computador de controle (implementação atual) |
-| ESP32 | Alternativa embarcada (implementação original) |
-| Driver BTS7960 × 2 | Ponte H para controle de motores DC |
-| Motores DC com encoder Hall | Atuadores lineares das pernas da mesa |
-| Botões momentâneos × 3 | Subir, Descer, Altura customizada |
+| Componente                   | Descrição                                      |
+| ---------------------------- | ---------------------------------------------- |
+| Raspberry Pi 3 (ou superior) | Computador de controle (implementação atual)   |
+| ESP32                        | Alternativa embarcada (implementação original) |
+| Driver BTS7960 × 2           | Ponte H para controle de motores DC            |
+| Motores DC com encoder Hall  | Atuadores lineares das pernas da mesa          |
+| Botões momentâneos × 3       | Subir, Descer, Altura customizada              |
 
 **Range de altura suportado:** 84 cm – 144 cm
 **Tolerância de preset:** ±0.3 cm
@@ -79,24 +79,24 @@ O projeto evoluiu por duas plataformas. Ambas usam o mesmo algoritmo de sincroni
 
 Roda em um **Raspberry Pi 3** conectado diretamente aos drivers via GPIO. Publica e consome MQTT de forma nativa, sem intermediários.
 
-| Item | Detalhe |
-|------|---------|
-| Linguagem | TypeScript (Node.js 18 LTS) |
-| GPIO/PWM | pigpio (hardware PWM, 1000 Hz) |
-| Comunicação | MQTT nativo |
-| Persistência | `calibracao.json` no filesystem |
+| Item          | Detalhe                           |
+| ------------- | --------------------------------- |
+| Linguagem     | TypeScript (Node.js 18 LTS)       |
+| GPIO/PWM      | pigpio (hardware PWM, 1000 Hz)    |
+| Comunicação   | MQTT nativo                       |
+| Persistência  | `calibracao.json` no filesystem   |
 | Inicialização | Serviço systemd com auto-reinício |
 
 ### `esp32/` — Implementação original
 
 Roda em um microcontrolador **ESP32** diretamente conectado aos drivers. A comunicação externa é feita via porta serial → JSON, com uma ponte externa para MQTT.
 
-| Item | Detalhe |
-|------|---------|
-| Linguagem | C++ (Arduino) |
-| Display | OLED 128×64 (Adafruit SSD1306) |
-| Comunicação | Serial (115200 baud) → JSON |
-| Persistência | Flash NVS do ESP32 |
+| Item         | Detalhe                        |
+| ------------ | ------------------------------ |
+| Linguagem    | C++ (Arduino)                  |
+| Display      | OLED 128×64 (Adafruit SSD1306) |
+| Comunicação  | Serial (115200 baud) → JSON    |
+| Persistência | Flash NVS do ESP32             |
 
 > A migração para o RPi3 eliminou a ponte serial (que era um ponto único de falha), simplificou a infraestrutura e viabilizou integração direta com brokers MQTT como o do Home Assistant.
 
@@ -115,17 +115,17 @@ Roda em um microcontrolador **ESP32** diretamente conectado aos drivers. A comun
 
 ## Tópicos MQTT
 
-| Tópico | Direção | Valores |
-|--------|---------|---------|
-| `mesa/comando` | entrada | `SUBIR`, `DESCER`, `PARAR`, `CALIBRAR` |
-| `mesa/preset` | entrada | altura em cm (ex: `110.0`) |
-| `mesa/status` | saída | `subindo`, `descendo`, `parado` |
-| `mesa/posicao` | saída | posição atual em cm (ex: `110.25`) |
-| `mesa/steps/esquerda` | saída | pulsos do encoder esquerdo |
-| `mesa/steps/direita` | saída | pulsos do encoder direito |
-| `mesa/calibracao` | saída | `{"pulsosE": 6800, "pulsosD": 6810}` |
-| `mesa/info` | saída | eventos e diagnósticos |
-| `mesa/disponivel` | saída | `online` / `offline` (LWT, retain) |
+| Tópico                | Direção | Valores                                |
+| --------------------- | ------- | -------------------------------------- |
+| `mesa/comando`        | entrada | `SUBIR`, `DESCER`, `PARAR`, `CALIBRAR` |
+| `mesa/preset`         | entrada | altura em cm (ex: `110.0`)             |
+| `mesa/status`         | saída   | `subindo`, `descendo`, `parado`        |
+| `mesa/posicao`        | saída   | posição atual em cm (ex: `110.25`)     |
+| `mesa/steps/esquerda` | saída   | pulsos do encoder esquerdo             |
+| `mesa/steps/direita`  | saída   | pulsos do encoder direito              |
+| `mesa/calibracao`     | saída   | `{"pulsosE": 6800, "pulsosD": 6810}`   |
+| `mesa/info`           | saída   | eventos e diagnósticos                 |
+| `mesa/disponivel`     | saída   | `online` / `offline` (LWT, retain)     |
 
 ---
 
@@ -164,17 +164,17 @@ Consulte [rpi3/README.md](rpi3/README.md) para instruções detalhadas de pinage
 
 ## Pinagem (RPi3, GPIO BCM)
 
-| Função | GPIO | Pino Físico |
-|--------|------|-------------|
-| Motor Esq — subir (RPWM) | 12 (HW PWM0) | 32 |
-| Motor Esq — descer (LPWM) | 18 (HW PWM0) | 12 |
-| Encoder esquerdo | 5 | 29 |
-| Motor Dir — subir (RPWM) | 13 (HW PWM1) | 33 |
-| Motor Dir — descer (LPWM) | 19 (HW PWM1) | 35 |
-| Encoder direito | 6 | 31 |
-| Botão subir | 20 | 38 |
-| Botão descer | 21 | 40 |
-| Botão altura custom | 26 | 37 |
+| Função                    | GPIO         | Pino Físico |
+| ------------------------- | ------------ | ----------- |
+| Motor Esq — subir (RPWM)  | 12 (HW PWM0) | 32          |
+| Motor Esq — descer (LPWM) | 18 (HW PWM0) | 12          |
+| Encoder esquerdo          | 5            | 29          |
+| Motor Dir — subir (RPWM)  | 13 (HW PWM1) | 33          |
+| Motor Dir — descer (LPWM) | 19 (HW PWM1) | 35          |
+| Encoder direito           | 6            | 31          |
+| Botão subir               | 20           | 38          |
+| Botão descer              | 21           | 40          |
+| Botão altura custom       | 26           | 37          |
 
 ---
 

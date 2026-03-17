@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Esquema Elétrico — Mesa Regulável</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e14;
+    color: #c9d1d9;
+    font-family: 'Share Tech Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #58a6ff;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 11px;
+    color: #6e7681;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+  svg { display: block; }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #8b949e;
+  }
+  .legend-line {
+    width: 28px;
+    height: 3px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+<h1>Esquema Elétrico — Mesa Regulável</h1>
+<div class="subtitle">ESP32 · LLC · BTS7960 · Hall Sensors · OLED</div>
+
+<svg width="1300" height="820" viewBox="0 0 1300 820" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <filter id="glow">
+    <feGaussianBlur stdDeviation="2" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L6,3 z" fill="#f85149"/>
+  </marker>
+  <marker id="arrow-orange" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L6,3 z" fill="#e3a617"/>
+  </marker>
+  <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L6,3 z" fill="#58a6ff"/>
+  </marker>
+  <marker id="arrow-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L6,3 z" fill="#3fb950"/>
+  </marker>
+  <marker id="arrow-purple" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L6,3 z" fill="#bc8cff"/>
+  </marker>
+</defs>
+
+<!-- Background grid -->
+<rect width="1300" height="820" fill="#0d1117" rx="8"/>
+<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#161b22" stroke-width="0.5"/>
+</pattern>
+<rect width="1300" height="820" fill="url(#grid)" rx="8"/>
+
+<!-- ============================================================
+     FONTES DE ALIMENTAÇÃO (esquerda)
+     ============================================================ -->
+
+<!-- Fonte 12V -->
+<rect x="20" y="120" width="110" height="80" rx="6" fill="#1a1f29" stroke="#f85149" stroke-width="1.5"/>
+<text x="75" y="142" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#f85149">FONTE</text>
+<text x="75" y="157" text-anchor="middle" font-family="Rajdhani" font-size="18" font-weight="700" fill="#f85149">12V</text>
+<text x="75" y="172" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#6e7681">Motores</text>
+<!-- pinos -->
+<circle cx="20" cy="150" r="4" fill="#f85149"/>
+<text x="8" y="145" font-family="Share Tech Mono" font-size="8" fill="#f85149">+</text>
+<circle cx="20" cy="168" r="4" fill="#3d444d"/>
+<text x="8" y="163" font-family="Share Tech Mono" font-size="8" fill="#3d444d">−</text>
+
+<!-- Fonte 5V -->
+<rect x="20" y="260" width="110" height="80" rx="6" fill="#1a1f29" stroke="#e3a617" stroke-width="1.5"/>
+<text x="75" y="282" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#e3a617">FONTE</text>
+<text x="75" y="297" text-anchor="middle" font-family="Rajdhani" font-size="18" font-weight="700" fill="#e3a617">5V</text>
+<text x="75" y="312" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#6e7681">Lógica HV</text>
+<circle cx="20" cy="290" r="4" fill="#e3a617"/>
+<text x="8" y="285" font-family="Share Tech Mono" font-size="8" fill="#e3a617">+</text>
+<circle cx="20" cy="308" r="4" fill="#3d444d"/>
+<text x="8" y="303" font-family="Share Tech Mono" font-size="8" fill="#3d444d">−</text>
+
+<!-- GND Rail label -->
+<rect x="20" y="420" width="110" height="30" rx="4" fill="#161b22" stroke="#3d444d" stroke-width="1"/>
+<text x="75" y="440" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#3d444d">GND COMUM</text>
+
+<!-- ============================================================
+     ESP32
+     ============================================================ -->
+<rect x="195" y="80" width="160" height="560" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+<rect x="195" y="80" width="160" height="28" rx="8" fill="#1f6feb" opacity="0.3"/>
+<text x="275" y="99" text-anchor="middle" font-family="Rajdhani" font-size="13" font-weight="700" fill="#58a6ff" letter-spacing="2">ESP32</text>
+<text x="275" y="114" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">WROOM-32  3.3V logic</text>
+
+<!-- ESP32 USB power -->
+<text x="275" y="132" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#e3a617">USB 5V ↓</text>
+
+<!-- Pinos ESP32 - lado direito (saídas para LLC) -->
+<!-- GPIO17 Motor Esq SUBIR -->
+<circle cx="355" cy="180" r="4" fill="#58a6ff"/>
+<text x="348" y="177" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO17</text>
+<text x="348" y="188" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">EsqSUBIR</text>
+
+<!-- GPIO16 Motor Esq DESCER -->
+<circle cx="355" cy="210" r="4" fill="#58a6ff"/>
+<text x="348" y="207" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO16</text>
+<text x="348" y="218" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">EsqDESCER</text>
+
+<!-- GPIO18 Motor Dir SUBIR -->
+<circle cx="355" cy="250" r="4" fill="#58a6ff"/>
+<text x="348" y="247" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO18</text>
+<text x="348" y="258" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">DirSUBIR</text>
+
+<!-- GPIO19 Motor Dir DESCER -->
+<circle cx="355" cy="280" r="4" fill="#58a6ff"/>
+<text x="348" y="277" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO19</text>
+<text x="348" y="288" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">DirDESCER</text>
+
+<!-- GPIO26 Encoder Esq -->
+<circle cx="355" cy="330" r="4" fill="#3fb950"/>
+<text x="348" y="327" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO26</text>
+<text x="348" y="338" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#3fb950">Hall ESQ</text>
+
+<!-- GPIO13 Encoder Dir -->
+<circle cx="355" cy="360" r="4" fill="#3fb950"/>
+<text x="348" y="357" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO13</text>
+<text x="348" y="368" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#3fb950">Hall DIR</text>
+
+<!-- GPIO21 SDA -->
+<circle cx="355" cy="420" r="4" fill="#bc8cff"/>
+<text x="348" y="417" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO21</text>
+<text x="348" y="428" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#bc8cff">SDA</text>
+
+<!-- GPIO22 SCL -->
+<circle cx="355" cy="445" r="4" fill="#bc8cff"/>
+<text x="348" y="442" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO22</text>
+<text x="348" y="453" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#bc8cff">SCL</text>
+
+<!-- GPIO36 Botão Subir -->
+<circle cx="195" cy="500" r="4" fill="#c9d1d9"/>
+<text x="202" y="497" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO36</text>
+<text x="202" y="508" font-family="Share Tech Mono" font-size="8" fill="#c9d1d9">BTN SUBIR</text>
+
+<!-- GPIO39 Botão Descer -->
+<circle cx="195" cy="530" r="4" fill="#c9d1d9"/>
+<text x="202" y="527" font-family="Share Tech Mono" font-size="9" fill="#8b949e">GPIO39</text>
+<text x="202" y="538" font-family="Share Tech Mono" font-size="8" fill="#c9d1d9">BTN DESCER</text>
+
+<!-- 3V3 out -->
+<circle cx="195" cy="580" r="4" fill="#ffa657"/>
+<text x="202" y="577" font-family="Share Tech Mono" font-size="9" fill="#8b949e">3V3</text>
+<text x="202" y="588" font-family="Share Tech Mono" font-size="8" fill="#ffa657">LLC LV VCC</text>
+
+<!-- GND -->
+<circle cx="195" cy="610" r="4" fill="#3d444d"/>
+<text x="202" y="607" font-family="Share Tech Mono" font-size="9" fill="#3d444d">GND</text>
+
+<!-- ============================================================
+     LLC — Conversor de Nível Lógico
+     ============================================================ -->
+<rect x="475" y="140" width="140" height="420" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+<rect x="475" y="140" width="140" height="28" rx="8" fill="#388bfd" opacity="0.2"/>
+<text x="545" y="158" text-anchor="middle" font-family="Rajdhani" font-size="12" font-weight="700" fill="#58a6ff" letter-spacing="1">LLC</text>
+<text x="545" y="170" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">Nível Lógico Bidirecional</text>
+
+<!-- Divisor LV/HV -->
+<line x1="475" y1="210" x2="615" y2="210" stroke="#30363d" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="492" y="207" font-family="Share Tech Mono" font-size="8" fill="#ffa657">LV 3.3V</text>
+<text x="560" y="207" font-family="Share Tech Mono" font-size="8" fill="#e3a617">HV 5V</text>
+
+<!-- LLC canais LV (esquerda do chip) -->
+<!-- Canal 1: GPIO17 → RPWM Esq -->
+<circle cx="475" cy="235" r="4" fill="#58a6ff"/>
+<text x="483" y="232" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">LV1</text>
+<circle cx="615" cy="235" r="4" fill="#58a6ff"/>
+<text x="605" y="232" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">HV1</text>
+<line x1="493" y1="235" x2="595" y2="235" stroke="#58a6ff" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+<text x="545" y="232" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#6e7681">EsqRPWM</text>
+
+<!-- Canal 2: GPIO16 → LPWM Esq -->
+<circle cx="475" cy="260" r="4" fill="#58a6ff"/>
+<text x="483" y="257" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">LV2</text>
+<circle cx="615" cy="260" r="4" fill="#58a6ff"/>
+<text x="605" y="257" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">HV2</text>
+<line x1="493" y1="260" x2="595" y2="260" stroke="#58a6ff" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+<text x="545" y="257" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#6e7681">EsqLPWM</text>
+
+<!-- Canal 3: GPIO18 → RPWM Dir -->
+<circle cx="475" cy="290" r="4" fill="#58a6ff"/>
+<text x="483" y="287" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">LV3</text>
+<circle cx="615" cy="290" r="4" fill="#58a6ff"/>
+<text x="605" y="287" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">HV3</text>
+<line x1="493" y1="290" x2="595" y2="290" stroke="#58a6ff" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+<text x="545" y="287" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#6e7681">DirRPWM</text>
+
+<!-- Canal 4: GPIO19 → LPWM Dir -->
+<circle cx="475" cy="315" r="4" fill="#58a6ff"/>
+<text x="483" y="312" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">LV4</text>
+<circle cx="615" cy="315" r="4" fill="#58a6ff"/>
+<text x="605" y="312" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#58a6ff">HV4</text>
+<line x1="493" y1="315" x2="595" y2="315" stroke="#58a6ff" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+<text x="545" y="312" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#6e7681">DirLPWM</text>
+
+<!-- Canal 5: Hall ESQ → GPIO26 -->
+<circle cx="475" cy="360" r="4" fill="#3fb950"/>
+<text x="483" y="357" font-family="Share Tech Mono" font-size="8" fill="#3fb950">LV5</text>
+<circle cx="615" cy="360" r="4" fill="#3fb950"/>
+<text x="605" y="357" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#3fb950">HV5</text>
+<line x1="493" y1="360" x2="595" y2="360" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+<text x="545" y="357" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#6e7681">Hall ESQ</text>
+
+<!-- Canal 6: Hall DIR → GPIO13 -->
+<circle cx="475" cy="385" r="4" fill="#3fb950"/>
+<text x="483" y="382" font-family="Share Tech Mono" font-size="8" fill="#3fb950">LV6</text>
+<circle cx="615" cy="385" r="4" fill="#3fb950"/>
+<text x="605" y="382" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#3fb950">HV6</text>
+<line x1="493" y1="385" x2="595" y2="385" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>
+<text x="545" y="382" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#6e7681">Hall DIR</text>
+
+<!-- LLC power pins -->
+<circle cx="475" cy="430" r="4" fill="#ffa657"/>
+<text x="483" y="433" font-family="Share Tech Mono" font-size="8" fill="#ffa657">LV VCC</text>
+<circle cx="615" cy="430" r="4" fill="#e3a617"/>
+<text x="605" y="433" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#e3a617">HV VCC</text>
+<circle cx="475" cy="455" r="4" fill="#3d444d"/>
+<text x="483" y="458" font-family="Share Tech Mono" font-size="8" fill="#3d444d">GND</text>
+<circle cx="615" cy="455" r="4" fill="#3d444d"/>
+<text x="605" y="458" text-anchor="end" font-family="Share Tech Mono" font-size="8" fill="#3d444d">GND</text>
+
+<!-- ============================================================
+     BTS7960 Esquerdo
+     ============================================================ -->
+<rect x="700" y="80" width="160" height="260" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+<rect x="700" y="80" width="160" height="28" rx="8" fill="#f85149" opacity="0.15"/>
+<text x="780" y="98" text-anchor="middle" font-family="Rajdhani" font-size="12" font-weight="700" fill="#f85149" letter-spacing="1">BTS7960</text>
+<text x="780" y="111" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">Ponte H — Motor ESQUERDO</text>
+
+<!-- Pinos BTS7960 Esq -->
+<circle cx="700" cy="145" r="4" fill="#58a6ff"/>
+<text x="708" y="142" font-family="Share Tech Mono" font-size="9" fill="#58a6ff">RPWM</text>
+<text x="708" y="152" font-family="Share Tech Mono" font-size="7" fill="#6e7681">subir</text>
+
+<circle cx="700" cy="172" r="4" fill="#58a6ff"/>
+<text x="708" y="169" font-family="Share Tech Mono" font-size="9" fill="#58a6ff">LPWM</text>
+<text x="708" y="179" font-family="Share Tech Mono" font-size="7" fill="#6e7681">descer</text>
+
+<circle cx="700" cy="200" r="4" fill="#e3a617"/>
+<text x="708" y="197" font-family="Share Tech Mono" font-size="9" fill="#e3a617">R_EN</text>
+<text x="708" y="207" font-family="Share Tech Mono" font-size="7" fill="#6e7681">→ 5V</text>
+
+<circle cx="700" cy="220" r="4" fill="#e3a617"/>
+<text x="708" y="217" font-family="Share Tech Mono" font-size="9" fill="#e3a617">L_EN</text>
+<text x="708" y="227" font-family="Share Tech Mono" font-size="7" fill="#6e7681">→ 5V</text>
+
+<circle cx="700" cy="245" r="4" fill="#e3a617"/>
+<text x="708" y="249" font-family="Share Tech Mono" font-size="9" fill="#e3a617">VCC</text>
+
+<circle cx="700" cy="265" r="4" fill="#3d444d"/>
+<text x="708" y="269" font-family="Share Tech Mono" font-size="9" fill="#3d444d">GND</text>
+
+<!-- Saídas de potência Esq -->
+<circle cx="860" cy="145" r="4" fill="#f85149"/>
+<text x="852" y="142" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#f85149">B+</text>
+<text x="852" y="152" text-anchor="end" font-family="Share Tech Mono" font-size="7" fill="#6e7681">12V</text>
+
+<circle cx="860" cy="172" r="4" fill="#3d444d"/>
+<text x="852" y="169" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#3d444d">B−</text>
+<text x="852" y="179" text-anchor="end" font-family="Share Tech Mono" font-size="7" fill="#6e7681">GND</text>
+
+<circle cx="860" cy="210" r="5" fill="#f85149"/>
+<text x="852" y="207" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#c9d1d9">M+</text>
+<circle cx="860" cy="235" r="5" fill="#3d444d"/>
+<text x="852" y="232" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#c9d1d9">M−</text>
+
+<!-- ============================================================
+     BTS7960 Direito
+     ============================================================ -->
+<rect x="700" y="400" width="160" height="260" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+<rect x="700" y="400" width="160" height="28" rx="8" fill="#f85149" opacity="0.15"/>
+<text x="780" y="418" text-anchor="middle" font-family="Rajdhani" font-size="12" font-weight="700" fill="#f85149" letter-spacing="1">BTS7960</text>
+<text x="780" y="431" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">Ponte H — Motor DIREITO</text>
+
+<circle cx="700" cy="462" r="4" fill="#58a6ff"/>
+<text x="708" y="459" font-family="Share Tech Mono" font-size="9" fill="#58a6ff">RPWM</text>
+<text x="708" y="469" font-family="Share Tech Mono" font-size="7" fill="#6e7681">subir</text>
+
+<circle cx="700" cy="490" r="4" fill="#58a6ff"/>
+<text x="708" y="487" font-family="Share Tech Mono" font-size="9" fill="#58a6ff">LPWM</text>
+<text x="708" y="497" font-family="Share Tech Mono" font-size="7" fill="#6e7681">descer</text>
+
+<circle cx="700" cy="518" r="4" fill="#e3a617"/>
+<text x="708" y="515" font-family="Share Tech Mono" font-size="9" fill="#e3a617">R_EN</text>
+<text x="708" y="525" font-family="Share Tech Mono" font-size="7" fill="#6e7681">→ 5V</text>
+
+<circle cx="700" cy="538" r="4" fill="#e3a617"/>
+<text x="708" y="535" font-family="Share Tech Mono" font-size="9" fill="#e3a617">L_EN</text>
+<text x="708" y="545" font-family="Share Tech Mono" font-size="7" fill="#6e7681">→ 5V</text>
+
+<circle cx="700" cy="562" r="4" fill="#e3a617"/>
+<text x="708" y="566" font-family="Share Tech Mono" font-size="9" fill="#e3a617">VCC</text>
+
+<circle cx="700" cy="582" r="4" fill="#3d444d"/>
+<text x="708" y="586" font-family="Share Tech Mono" font-size="9" fill="#3d444d">GND</text>
+
+<circle cx="860" cy="462" r="4" fill="#f85149"/>
+<text x="852" y="459" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#f85149">B+</text>
+<text x="852" y="469" text-anchor="end" font-family="Share Tech Mono" font-size="7" fill="#6e7681">12V</text>
+
+<circle cx="860" cy="490" r="4" fill="#3d444d"/>
+<text x="852" y="487" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#3d444d">B−</text>
+<text x="852" y="497" text-anchor="end" font-family="Share Tech Mono" font-size="7" fill="#6e7681">GND</text>
+
+<circle cx="860" cy="525" r="5" fill="#f85149"/>
+<text x="852" y="522" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#c9d1d9">M+</text>
+<circle cx="860" cy="550" r="5" fill="#3d444d"/>
+<text x="852" y="547" text-anchor="end" font-family="Share Tech Mono" font-size="9" fill="#c9d1d9">M−</text>
+
+<!-- ============================================================
+     MOTORES
+     ============================================================ -->
+<!-- Motor Esquerdo -->
+<ellipse cx="1010" cy="218" rx="45" ry="35" fill="#1a1f29" stroke="#58a6ff" stroke-width="1.5"/>
+<text x="1010" y="214" text-anchor="middle" font-family="Rajdhani" font-size="11" font-weight="700" fill="#58a6ff">MOTOR</text>
+<text x="1010" y="226" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#6e7681">ESQ 12V</text>
+<circle cx="965" cy="210" r="4" fill="#f85149"/>
+<circle cx="965" cy="226" r="4" fill="#3d444d"/>
+
+<!-- Motor Direito -->
+<ellipse cx="1010" cy="535" rx="45" ry="35" fill="#1a1f29" stroke="#58a6ff" stroke-width="1.5"/>
+<text x="1010" y="531" text-anchor="middle" font-family="Rajdhani" font-size="11" font-weight="700" fill="#58a6ff">MOTOR</text>
+<text x="1010" y="543" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#6e7681">DIR 12V</text>
+<circle cx="965" cy="527" r="4" fill="#f85149"/>
+<circle cx="965" cy="543" r="4" fill="#3d444d"/>
+
+<!-- ============================================================
+     SENSORES HALL
+     ============================================================ -->
+<!-- Hall Esquerdo -->
+<rect x="960" y="100" width="100" height="64" rx="6" fill="#162312" stroke="#3fb950" stroke-width="1.5"/>
+<text x="1010" y="118" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#3fb950">HALL ESQ</text>
+<text x="1010" y="130" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">GPIO26</text>
+<text x="1010" y="144" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">5V / GND / OUT</text>
+<circle cx="960" cy="120" r="4" fill="#e3a617"/>
+<circle cx="960" cy="136" r="4" fill="#3d444d"/>
+<circle cx="960" cy="152" r="4" fill="#3fb950"/>
+
+<!-- Hall Direito -->
+<rect x="960" y="440" width="100" height="64" rx="6" fill="#162312" stroke="#3fb950" stroke-width="1.5"/>
+<text x="1010" y="458" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#3fb950">HALL DIR</text>
+<text x="1010" y="470" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">GPIO13</text>
+<text x="1010" y="484" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">5V / GND / OUT</text>
+<circle cx="960" cy="460" r="4" fill="#e3a617"/>
+<circle cx="960" cy="476" r="4" fill="#3d444d"/>
+<circle cx="960" cy="492" r="4" fill="#3fb950"/>
+
+<!-- ============================================================
+     OLED SSD1306
+     ============================================================ -->
+<rect x="80" y="490" width="100" height="80" rx="6" fill="#161b22" stroke="#bc8cff" stroke-width="1.5"/>
+<text x="130" y="508" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#bc8cff">OLED</text>
+<text x="130" y="520" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">SSD1306</text>
+<text x="130" y="532" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">I2C 0x3C</text>
+<text x="130" y="544" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#6e7681">3.3V</text>
+<circle cx="180" cy="516" r="4" fill="#bc8cff"/>
+<text x="183" y="513" font-family="Share Tech Mono" font-size="8" fill="#bc8cff">SDA</text>
+<circle cx="180" cy="536" r="4" fill="#bc8cff"/>
+<text x="183" y="533" font-family="Share Tech Mono" font-size="8" fill="#bc8cff">SCL</text>
+
+<!-- ============================================================
+     BOTÕES
+     ============================================================ -->
+<!-- Botão Subir -->
+<rect x="40" y="620" width="80" height="40" rx="20" fill="#162312" stroke="#3fb950" stroke-width="1.5"/>
+<text x="80" y="645" text-anchor="middle" font-family="Rajdhani" font-size="12" font-weight="700" fill="#3fb950">▲ SUBIR</text>
+<circle cx="120" cy="635" r="3" fill="#c9d1d9"/>
+
+<!-- Botão Descer -->
+<rect x="40" y="670" width="80" height="40" rx="20" fill="#1a1520" stroke="#f85149" stroke-width="1.5"/>
+<text x="80" y="695" text-anchor="middle" font-family="Rajdhani" font-size="12" font-weight="700" fill="#f85149">▼ DESCER</text>
+<circle cx="120" cy="685" r="3" fill="#c9d1d9"/>
+
+<!-- ============================================================
+     FIOS — SINAIS DE CONTROLE PWM (azul)
+     ============================================================ -->
+<!-- GPIO17 → LLC LV1 (RPWM Esq) -->
+<path d="M355,180 L420,180 L420,235 L475,235" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+<!-- GPIO16 → LLC LV2 (LPWM Esq) -->
+<path d="M355,210 L430,210 L430,260 L475,260" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+<!-- GPIO18 → LLC LV3 (RPWM Dir) -->
+<path d="M355,250 L440,250 L440,290 L475,290" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+<!-- GPIO19 → LLC LV4 (LPWM Dir) -->
+<path d="M355,280 L450,280 L450,315 L475,315" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+
+<!-- LLC HV1 → BTS7960 Esq RPWM -->
+<path d="M615,235 L660,235 L660,145 L700,145" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+<!-- LLC HV2 → BTS7960 Esq LPWM -->
+<path d="M615,260 L665,260 L665,172 L700,172" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+<!-- LLC HV3 → BTS7960 Dir RPWM -->
+<path d="M615,290 L670,290 L670,462 L700,462" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+<!-- LLC HV4 → BTS7960 Dir LPWM -->
+<path d="M615,315 L675,315 L675,490 L700,490" fill="none" stroke="#58a6ff" stroke-width="1.8" marker-end="url(#arrow-blue)"/>
+
+<!-- ============================================================
+     FIOS — ENCODER/SENSOR HALL (verde)
+     ============================================================ -->
+<!-- Hall Esq OUT → LLC HV5 -->
+<path d="M960,152 L900,152 L900,360 L615,360" fill="none" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+<!-- Hall Dir OUT → LLC HV6 -->
+<path d="M960,492 L910,492 L910,385 L615,385" fill="none" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+<!-- LLC LV5 → GPIO26 -->
+<path d="M475,360 L460,360 L460,330 L355,330" fill="none" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+<!-- LLC LV6 → GPIO13 -->
+<path d="M475,385 L455,385 L455,360 L355,360" fill="none" stroke="#3fb950" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+
+<!-- ============================================================
+     FIOS — I2C (roxo)
+     ============================================================ -->
+<!-- GPIO21 SDA → OLED SDA -->
+<path d="M195,420 L187,420 L187,516 L180,516" fill="none" stroke="#bc8cff" stroke-width="1.8" marker-end="url(#arrow-purple)"/>
+<!-- GPIO22 SCL → OLED SCL -->
+<path d="M195,445 L185,445 L185,536 L180,536" fill="none" stroke="#bc8cff" stroke-width="1.8" marker-end="url(#arrow-purple)"/>
+
+<!-- ============================================================
+     FIOS — BOTÕES (branco)
+     ============================================================ -->
+<path d="M120,635 L155,635 L155,500 L195,500" fill="none" stroke="#c9d1d9" stroke-width="1.5"/>
+<path d="M120,685 L160,685 L160,530 L195,530" fill="none" stroke="#c9d1d9" stroke-width="1.5"/>
+
+<!-- ============================================================
+     FIOS — ALIMENTAÇÃO 12V (vermelho)
+     ============================================================ -->
+<!-- Fonte 12V + → BTS7960 Esq B+ -->
+<path d="M130,150 L880,150 L880,145 L860,145" fill="none" stroke="#f85149" stroke-width="2.5" opacity="0.8"/>
+<!-- Fonte 12V + → BTS7960 Dir B+ -->
+<path d="M130,150 L880,150 L880,462 L860,462" fill="none" stroke="#f85149" stroke-width="2.5" opacity="0.8"/>
+
+<!-- ============================================================
+     FIOS — ALIMENTAÇÃO 5V (laranja)
+     ============================================================ -->
+<!-- Fonte 5V + → LLC HV VCC -->
+<path d="M130,290 L645,290 L645,430 L615,430" fill="none" stroke="#e3a617" stroke-width="2" opacity="0.8" marker-end="url(#arrow-orange)"/>
+<!-- Fonte 5V → Hall Esq VCC -->
+<path d="M130,290 L920,290 L920,120 L960,120" fill="none" stroke="#e3a617" stroke-width="2" opacity="0.8"/>
+<!-- Fonte 5V → Hall Dir VCC -->
+<path d="M130,290 L920,290 L920,460 L960,460" fill="none" stroke="#e3a617" stroke-width="2" opacity="0.8"/>
+<!-- Fonte 5V → BTS7960 Esq VCC/EN -->
+<path d="M130,290 L690,290 L690,200 L700,200" fill="none" stroke="#e3a617" stroke-width="1.8" opacity="0.7"/>
+<path d="M690,200 L690,220 L700,220" fill="none" stroke="#e3a617" stroke-width="1.8" opacity="0.7"/>
+<path d="M690,200 L690,245 L700,245" fill="none" stroke="#e3a617" stroke-width="1.8" opacity="0.7"/>
+<!-- Fonte 5V → BTS7960 Dir VCC/EN -->
+<path d="M130,290 L685,290 L685,518 L700,518" fill="none" stroke="#e3a617" stroke-width="1.8" opacity="0.7"/>
+<path d="M685,518 L685,538 L700,538" fill="none" stroke="#e3a617" stroke-width="1.8" opacity="0.7"/>
+<path d="M685,518 L685,562 L700,562" fill="none" stroke="#e3a617" stroke-width="1.8" opacity="0.7"/>
+
+<!-- ESP32 3V3 → LLC LV VCC -->
+<path d="M195,580 L475,580 L475,430" fill="none" stroke="#ffa657" stroke-width="1.8" opacity="0.8" marker-end="url(#arrow-orange)"/>
+
+<!-- ============================================================
+     FIOS — GND (preto/cinza escuro)
+     ============================================================ -->
+<!-- GND rail horizontal -->
+<line x1="130" y1="750" x2="900" y2="750" stroke="#3d444d" stroke-width="2" opacity="0.6"/>
+<text x="515" y="765" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#3d444d">GND COMUM</text>
+<!-- Drops para cada componente -->
+<line x1="130" y1="168" x2="130" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+<line x1="130" y1="308" x2="130" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.3" stroke-dasharray="4,3"/>
+<line x1="475" y1="455" x2="475" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+<line x1="615" y1="455" x2="615" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+<line x1="730" y1="265" x2="730" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+<line x1="730" y1="582" x2="730" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+<line x1="860" y1="172" x2="860" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+<line x1="860" y1="490" x2="860" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+<line x1="900" y1="136" x2="900" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,3"/>
+<line x1="910" y1="476" x2="910" y2="750" stroke="#3d444d" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,3"/>
+
+<!-- BTS7960 GND nodes on rail -->
+<circle cx="730" cy="750" r="4" fill="#3d444d"/>
+<circle cx="900" cy="750" r="4" fill="#3d444d"/>
+<circle cx="130" cy="750" r="4" fill="#3d444d"/>
+
+<!-- Motor wires -->
+<line x1="860" y1="210" x2="965" y2="210" stroke="#c9d1d9" stroke-width="2"/>
+<line x1="860" y1="235" x2="965" y2="235" stroke="#3d444d" stroke-width="2"/>
+<line x1="860" y1="525" x2="965" y2="525" stroke="#c9d1d9" stroke-width="2"/>
+<line x1="860" y1="550" x2="965" y2="550" stroke="#3d444d" stroke-width="2"/>
+
+<!-- ============================================================
+     NOTA — GPIO13
+     ============================================================ -->
+<rect x="1080" y="340" width="200" height="55" rx="4" fill="#2d1b00" stroke="#e3a617" stroke-width="1" opacity="0.9"/>
+<text x="1090" y="356" font-family="Share Tech Mono" font-size="9" fill="#e3a617">⚠ GPIO13 (Hall Dir)</text>
+<text x="1090" y="370" font-family="Share Tech Mono" font-size="8" fill="#c9d1d9">Requer gpio_reset_pin</text>
+<text x="1090" y="382" font-family="Share Tech Mono" font-size="8" fill="#c9d1d9">(GPIO_NUM_13) no setup()</text>
+
+</svg>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-line" style="background:#f85149"></div> 12V (Motores)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#e3a617"></div> 5V (Lógica HV)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#ffa657"></div> 3.3V (ESP32 → LLC LV)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#3d444d"></div> GND</div>
+  <div class="legend-item"><div class="legend-line" style="background:#58a6ff"></div> PWM / Controle</div>
+  <div class="legend-item"><div class="legend-line" style="background:#3fb950"></div> Encoder / Hall</div>
+  <div class="legend-item"><div class="legend-line" style="background:#bc8cff"></div> I2C (SDA/SCL)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#c9d1d9"></div> Botões / Motor saída</div>
+</div>
+</body>
+</html>

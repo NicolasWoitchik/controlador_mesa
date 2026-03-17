@@ -1,0 +1,20 @@
+[Unit]
+Description=Mesa MQTT Serial Bridge
+After=network.target
+
+[Service]
+# Ajuste o caminho abaixo para o local real do bridge.py
+ExecStart=/usr/bin/python3 /opt/controlador_mesa/bridge/bridge.py
+Restart=always
+RestartSec=5
+# Variaveis de ambiente opcionais (descomente e ajuste se necessario)
+# Environment="MESA_SERIAL_PORT=/dev/ttyUSB0"
+# Environment="MESA_MQTT_BROKER=localhost"
+# Environment="MESA_MQTT_PORT=1883"
+# Environment="MESA_MQTT_USER=usuario"
+# Environment="MESA_MQTT_PASS=senha"
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

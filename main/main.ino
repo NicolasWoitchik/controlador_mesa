@@ -1,11 +1,3 @@
-/*********
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp8266-nodemcu-websocket-server-arduino/
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*********/
-
-// Import required libraries
 #include <Wire.h>
 #include "driver/gpio.h"
 
@@ -68,7 +60,7 @@ void setup() {
 }
 
 void loop() {
-  lerComandoSerial();
+  lerComandoSerial(); 
   controles.loop();
   controles.printStatus(&tela);
   publicarSerial();

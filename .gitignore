@@ -1,4 +1,5 @@
+.vscode
+.claude
 build
-node_modules/
-dist/
-calibracao.json
+backup_firmware.bin
+DIAGNOSTICO_ENCODER_DIREITO.md
