@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import * as fs from 'fs';
 import { Motor, CalibracaoMotor, MotorId } from './Motor';
 import { Controles } from './Controles';
