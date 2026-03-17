@@ -9,7 +9,16 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+
+    "service:start":   "sudo systemctl start pigpiod mesa-rpi",
+    "service:stop":    "sudo systemctl stop mesa-rpi pigpiod",
+    "service:restart": "sudo systemctl restart mesa-rpi",
+    "service:status":  "sudo systemctl status pigpiod mesa-rpi --no-pager",
+
+    "logs":        "sudo journalctl -u mesa-rpi -f",
+    "logs:pigpio": "sudo journalctl -u pigpiod -f",
+    "logs:all":    "sudo journalctl -u pigpiod -u mesa-rpi -f"
   },
   "dependencies": {
     "dotenv": "^17.3.1",
