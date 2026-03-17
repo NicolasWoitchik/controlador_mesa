@@ -10,6 +10,7 @@ Conecta diretamente ao broker MQTT — sem bridge serial intermediária.
 rpi3/
 ├── package.json
 ├── tsconfig.json
+├── .env                   # credenciais MQTT locais (gitignore)
 ├── calibracao.json        # gerado em runtime (gitignore)
 ├── src/
 │   ├── index.ts           # entry point, orquestração e loop de publicação
@@ -18,8 +19,10 @@ rpi3/
 │   ├── Controles.ts       # lógica de sync, calibração, preset e botões
 │   └── MqttClient.ts      # pub/sub MQTT com LWT
 ├── dist/                  # output compilado (gitignore)
-└── systemd/
-    └── mesa-rpi.service   # unit systemd
+├── systemd/
+│   ├── pigpiod.service    # unit systemd para o daemon pigpio
+│   └── mesa-rpi.service   # unit systemd para o firmware
+└── MIGRAÇÃO.md            # histórico da migração pigpio → pigpio-client
 ```
 
 ## Tabela de pinos
@@ -39,7 +42,7 @@ Mapeamento do ESP32 para RPi GPIO (numeração BCM):
 | Altura custom | 34 | GPIO 26 | Pin 37 |
 
 > GPIO 12/18 compartilham canal PWM0; GPIO 13/19 compartilham PWM1.
-> O pino inativo sempre recebe `digitalWrite(0)` para garantir LOW real na BTS7960.
+> O pino inativo sempre recebe `write(0)` para garantir LOW real na BTS7960.
 
 ## Tópicos MQTT
 
@@ -57,79 +60,84 @@ Mapeamento do ESP32 para RPi GPIO (numeração BCM):
 
 ## Setup
 
-### 1. Pré-requisitos
+### 1. Compilar e instalar pigpiod
+
+O pacote `pigpio` não está disponível via `apt` no Debian 13 (Trixie) arm64. É necessário compilar do fonte:
 
 ```bash
-# pigpiod — daemon obrigatório para acesso ao GPIO
-sudo apt install pigpio
-sudo systemctl enable pigpiod
-sudo systemctl start pigpiod
+sudo apt-get install -y git build-essential
+cd /tmp && git clone https://github.com/joan2937/pigpio.git
+cd pigpio && make && sudo make install
 ```
 
 ### 2. Node.js
 
+Node 20 LTS ou superior (via nvm recomendado):
+
 ```bash
-# Node 18 LTS (recomendado — pigpio é addon nativo compilado com node-gyp)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+nvm install 20 && nvm use 20
 ```
 
-> Se estiver usando Node 24 e `npm install` falhar ao compilar o `pigpio`:
-> ```bash
-> curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-> nvm install 18 && nvm use 18
-> ```
-
-### 3. Instalar e compilar
+### 3. Instalar dependências e compilar
 
 ```bash
-cd /opt/controlador_mesa/rpi3
 npm install
-npm run build      # compila TypeScript → dist/
+npm run build
 ```
 
-### 4. Serviço systemd
+### 4. Configurar credenciais MQTT
 
-```bash
-sudo cp systemd/mesa-rpi.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable mesa-rpi
-sudo systemctl start mesa-rpi
-
-# Acompanhar logs em tempo real
-sudo journalctl -u mesa-rpi -f
-```
-
-Edite as variáveis de ambiente no arquivo `systemd/mesa-rpi.service` antes de instalar:
+Crie o arquivo `.env` na raiz do projeto:
 
 ```ini
-Environment="MESA_MQTT_BROKER=192.168.15.20"
-Environment="MESA_MQTT_PORT=1883"
-Environment="MESA_MQTT_USER=mesa_pc"
-Environment="MESA_MQTT_PASS=mesa"
+MESA_MQTT_BROKER=192.168.15.20
+MESA_MQTT_PORT=1883
+MESA_MQTT_USER=mesa_pc
+MESA_MQTT_PASS=mesa
 ```
 
-## Desenvolvimento
+### 5. Instalar serviços systemd
 
 ```bash
-npm run dev   # executa via tsx sem compilar
+sudo cp systemd/pigpiod.service /etc/systemd/system/
+sudo cp systemd/mesa-rpi.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable pigpiod mesa-rpi
+npm run service:start
 ```
 
-## Testes manuais
+## Scripts npm
+
+### Desenvolvimento
+
+| Comando | Descrição |
+|---|---|
+| `npm run build` | Compila TypeScript → `dist/` |
+| `npm start` | Roda o firmware compilado |
+| `npm run dev` | Roda via tsx sem compilar |
+
+### Serviços systemd
+
+| Comando | Descrição |
+|---|---|
+| `npm run service:start` | Inicia pigpiod e mesa-rpi |
+| `npm run service:stop` | Para mesa-rpi e pigpiod |
+| `npm run service:restart` | Reinicia só o mesa-rpi |
+| `npm run service:status` | Status dos dois serviços |
+
+### Logs
+
+| Comando | Descrição |
+|---|---|
+| `npm run logs` | Logs do firmware em tempo real |
+| `npm run logs:pigpio` | Logs do pigpiod em tempo real |
+| `npm run logs:all` | Logs dos dois serviços juntos |
+
+## Testes manuais via MQTT
 
 ```bash
-# Verificar pigpiod
-sudo systemctl status pigpiod
-
-# Smoke test de PWM no GPIO 12 (sem motor conectado)
-sudo node -e "
-const {Gpio} = require('pigpio');
-const p = new Gpio(12, { mode: Gpio.OUTPUT });
-p.hardwarePwmWrite(1000, 500000);
-setTimeout(() => { p.hardwarePwmWrite(1000, 0); process.exit(); }, 3000);
-"
-
-# Comandos via MQTT
+# Enviar comandos
 mosquitto_pub -h 192.168.15.20 -u mesa_pc -P mesa -t mesa/comando -m SUBIR
 mosquitto_pub -h 192.168.15.20 -u mesa_pc -P mesa -t mesa/comando -m PARAR
 mosquitto_pub -h 192.168.15.20 -u mesa_pc -P mesa -t mesa/preset  -m 110.0
