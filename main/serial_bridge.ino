@@ -20,7 +20,7 @@ void lerComandoSerial() {
   } else if (linha == "PARAR") {
     controles.parar();
   } else if (linha == "CALIBRAR") {
-    controles.calibrar(&tela);
+    controles.calibrar();
   } else if (linha.startsWith("IR:")) {
     float alvo = linha.substring(3).toFloat();
     controles.irPara(alvo);

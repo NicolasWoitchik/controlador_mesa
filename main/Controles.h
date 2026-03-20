@@ -3,9 +3,9 @@
 
 #include "Motor.h"
 #include "Arduino.h"
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+// #include <Wire.h>
+// #include <Adafruit_GFX.h>
+// #include <Adafruit_SSD1306.h>
 
 class Controles {
 public:
@@ -16,8 +16,8 @@ public:
   void loop();
   void parar();
   void custom();
-  void calibrar(Adafruit_SSD1306 *tela);
-  void printStatus(Adafruit_SSD1306 *tela);
+  void calibrar();
+  void printStatus();
   DIRECAO getDirecao() const;
   int getErroSincPulsos() const;
   void irPara(float alvoEmCm);

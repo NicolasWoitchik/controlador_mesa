@@ -1,9 +1,9 @@
 #include "Motor.h"
 #include "Arduino.h"
 #include "Controles.h"
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+// #include <Wire.h>
+// #include <Adafruit_GFX.h>
+// #include <Adafruit_SSD1306.h>
 
 int dir;
 int lastDir;
@@ -236,7 +236,9 @@ int Controles::getErroSincPulsos() const {
 void Controles::_sincronizarMotores() {
   if (_recuperando) return;
 
-  if (_direcao == PARAR) {
+  // _direcao vem do encoder e só atualiza no fim do loop. Após PARAR, parar() zera o PWM
+  // mas _direcao ainda pode ser SUBIR/DESCER — setVelocidade religava analogWrite. Usar `dir`.
+  if (dir == 0) {
     _motorEsquerda->setVelocidade(255);
     _motorDireita->setVelocidade(255);
     _erroSincAtual = 0;
@@ -286,17 +288,17 @@ void Controles::_sincronizarMotores() {
   }
 }
 
-void Controles::calibrar(Adafruit_SSD1306 *tela) {
+void Controles::calibrar() {
   _calibrando = true;
   _serialComando = PARAR;
 
-  // 1. Exibir mensagem e publicar status
-  tela->clearDisplay();
-  tela->setCursor(0, 0);
-  tela->setTextSize(1);
-  tela->println("Calibrando...");
-  tela->println("Descendo...");
-  tela->display();
+  // 1. Publicar status
+  // tela->clearDisplay();
+  // tela->setCursor(0, 0);
+  // tela->setTextSize(1);
+  // tela->println("Calibrando...");
+  // tela->println("Descendo...");
+  // tela->display();
   Serial.println("{\"tipo\":\"status\",\"status\":\"calibrando\"}");
 
   // 2. Descer ambos os motores
@@ -316,12 +318,12 @@ void Controles::calibrar(Adafruit_SSD1306 *tela) {
   _motorEsquerda->setSteps(0);
   _motorDireita->setSteps(0);
 
-  // 5. Exibir mensagem de subida
-  tela->clearDisplay();
-  tela->setCursor(0, 0);
-  tela->println("Subindo para");
-  tela->println("medir...");
-  tela->display();
+  // 5. Publicar status de subida
+  // tela->clearDisplay();
+  // tela->setCursor(0, 0);
+  // tela->println("Subindo para");
+  // tela->println("medir...");
+  // tela->display();
   Serial.println("{\"tipo\":\"status\",\"status\":\"calibrando_subindo\"}");
 
   delay(500);
@@ -350,14 +352,14 @@ void Controles::calibrar(Adafruit_SSD1306 *tela) {
   _motorEsquerda->saveSteps();
   _motorDireita->saveSteps();
 
-  // 11. Exibir resultado e publicar
-  tela->clearDisplay();
-  tela->setCursor(0, 0);
-  tela->println("Calibrado!");
-  char buf[32];
-  snprintf(buf, sizeof(buf), "E:%d D:%d", pulsosE, pulsosD);
-  tela->println(buf);
-  tela->display();
+  // 11. Publicar resultado
+  // tela->clearDisplay();
+  // tela->setCursor(0, 0);
+  // tela->println("Calibrado!");
+  // char buf[32];
+  // snprintf(buf, sizeof(buf), "E:%d D:%d", pulsosE, pulsosD);
+  // tela->println(buf);
+  // tela->display();
 
   char json[96];
   snprintf(json, sizeof(json),
@@ -368,40 +370,32 @@ void Controles::calibrar(Adafruit_SSD1306 *tela) {
   _calibrando = false;
 }
 
-void Controles::printStatus(Adafruit_SSD1306 *tela) {
-  tela->clearDisplay();
-  tela->setCursor(0, 0);
-  tela->setTextSize(2);
-
-  if (this->_direcao == SUBIR) {
-    tela->println("Subindo");
-  } else if (this->_direcao == DESCER) {
-    tela->println("Descendo");
-  } else {
-    tela->println("Parado");
-  }
-
-  tela->setTextSize(4);
-
-  char total[16];
-  float posicaoEmCentimetros = this->_motorEsquerda->getPosicaoEmCentimetros();
-  dtostrf(posicaoEmCentimetros, 3, 2, total);
-
-  char *cm = strtok(total, ".");
-  tela->print(cm);
-  tela->println("cm");
-
-  char *mm = strtok(NULL, ".");
-  tela->setTextSize(1);
-  tela->print(mm);
-  tela->print("mm");
-
-  tela->printf(" S:%d", _erroSincAtual);
-
-  tela->setCursor(0, 56);
-  tela->setTextSize(1);
-  tela->print(digitalRead(_inputSubir) ? "[^]" : " ^ ");
-  tela->print(digitalRead(_inputDescer) ? "[v]" : " v ");
-
-  tela->display();
+void Controles::printStatus() {
+  // tela->clearDisplay();
+  // tela->setCursor(0, 0);
+  // tela->setTextSize(2);
+  // if (this->_direcao == SUBIR) {
+  //   tela->println("Subindo");
+  // } else if (this->_direcao == DESCER) {
+  //   tela->println("Descendo");
+  // } else {
+  //   tela->println("Parado");
+  // }
+  // tela->setTextSize(4);
+  // char total[16];
+  // float posicaoEmCentimetros = this->_motorEsquerda->getPosicaoEmCentimetros();
+  // dtostrf(posicaoEmCentimetros, 3, 2, total);
+  // char *cm = strtok(total, ".");
+  // tela->print(cm);
+  // tela->println("cm");
+  // char *mm = strtok(NULL, ".");
+  // tela->setTextSize(1);
+  // tela->print(mm);
+  // tela->print("mm");
+  // tela->printf(" S:%d", _erroSincAtual);
+  // tela->setCursor(0, 56);
+  // tela->setTextSize(1);
+  // tela->print(digitalRead(_inputSubir) ? "[^]" : " ^ ");
+  // tela->print(digitalRead(_inputDescer) ? "[v]" : " v ");
+  // tela->display();
 }

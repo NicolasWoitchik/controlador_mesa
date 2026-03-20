@@ -17,7 +17,7 @@ import serial
 from serial.tools import list_ports
 
 # --- Configuracao ---
-SERIAL_PORT = os.environ.get("MESA_SERIAL_PORT", "/dev/ttyACM1")  # vazio = auto-detectar
+SERIAL_PORT = os.environ.get("MESA_SERIAL_PORT", "/dev/ttyACM0")  # vazio = auto-detectar
 SERIAL_BAUD = int(os.environ.get("MESA_SERIAL_BAUD", "115200"))
 VERBOSE = os.environ.get("MESA_VERBOSE", "0") == "1"
 MQTT_BROKER = os.environ.get("MESA_MQTT_BROKER", "192.168.15.20")

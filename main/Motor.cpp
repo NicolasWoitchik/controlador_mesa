@@ -86,6 +86,8 @@ void Motor::parar() {
   this->_direcao = PARAR;
   ledcWrite(this->_outputSobe, 0);
   ledcWrite(this->_outputDesce, 0);
+  analogWrite(this->_outputSobe, 0);
+  analogWrite(this->_outputDesce, 0);
   digitalWrite(this->_outputSobe, LOW);
   digitalWrite(this->_outputDesce, LOW);
 }

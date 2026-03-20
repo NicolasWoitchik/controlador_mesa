@@ -1,16 +1,16 @@
 #include <Wire.h>
 #include "driver/gpio.h"
 
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+// #include <Adafruit_GFX.h>
+// #include <Adafruit_SSD1306.h>
 #include <Arduino_JSON.h>
 #include "Motor.h"
 #include "Controles.h"
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-#define SCREEN_ADDRESS 0x3c
-#define OLED_RESET -1
+// #define SCREEN_WIDTH 128
+// #define SCREEN_HEIGHT 64
+// #define SCREEN_ADDRESS 0x3c
+// #define OLED_RESET -1
 
 bool ledState = 0;
 const int ledPin = 2;
@@ -25,7 +25,7 @@ Controles controles(
   &esquerda,
   &direita);
 
-Adafruit_SSD1306 tela(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+// Adafruit_SSD1306 tela(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 
 void setup() {
@@ -44,26 +44,20 @@ void setup() {
   esquerda.startEncoderTask();
   direita.startEncoderTask();
 
-  // if (!tela.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-  //   Serial.println("SSD1306 allocation failed");
-  //   for (;;) {
-  //     Serial.println("Falha ao conectar com a tela");
-  //     delay(1000);
-  //   };  // Don't proceed, loop forever
+  // if (!tela.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+  //   Serial.println("{\"tipo\":\"erro\",\"msg\":\"oled_falhou\"}");
   // }
-
-  tela.clearDisplay();
-
-  tela.setTextSize(1);
-  tela.setTextColor(WHITE);
-  tela.setCursor(0, 0);
-  tela.print("Iniciando...");
-  tela.display();
+  // tela.clearDisplay();
+  // tela.setTextSize(1);
+  // tela.setTextColor(WHITE);
+  // tela.setCursor(0, 0);
+  // tela.print("Iniciando...");
+  // tela.display();
 }
 
 void loop() {
-  lerComandoSerial(); 
+  lerComandoSerial();
   controles.loop();
-  controles.printStatus(&tela);
+  // controles.printStatus(&tela);
   publicarSerial();
 }
