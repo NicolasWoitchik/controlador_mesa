@@ -8,7 +8,7 @@ enum DIRECAO { SUBIR, DESCER, PARAR };
 
 class Motor {
 public:
-  Motor(int outputSobe, int outputDesce, int encoderPin);
+  Motor(int outputSobe, int outputDesce, int encoderPin, int encoderPinDir);
   void subir();
   void descer();
   void parar();
@@ -27,10 +27,13 @@ public:
 
 private:
   static void _tarefaEncoder(void* arg);
+  /** Dead-time (µs) entre desligar um lado do H-bridge e ligar o outro — só na troca de direção. */
+  static constexpr uint8_t MOTOR_DEAD_TIME_US = 15;
   int _outputSobe;
   int _outputDesce;
   int _velocidade;
   int _encoderPin;
+  int _encoderPinDir;
   int _direcao;
   ESP32Encoder _encoder;
   volatile unsigned long _ultimoPulsoTime;

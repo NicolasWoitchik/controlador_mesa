@@ -248,6 +248,8 @@ void Controles::_sincronizarMotores() {
   int pulsosE = _motorEsquerda->getPulsosCalibrados();
   int pulsosD = _motorDireita->getPulsosCalibrados();
 
+  if (pulsosE <= 0 || pulsosD <= 0) return;
+
   float deltaE = (float)(stepsE - _stepsEInicio) / pulsosE;
   float deltaD = (float)(stepsD - _stepsDInicio) / pulsosD;
   float erro = deltaE - deltaD;

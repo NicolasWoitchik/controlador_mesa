@@ -15,8 +15,8 @@
 bool ledState = 0;
 const int ledPin = 2;
 
-Motor esquerda(17, 16, 26);
-Motor direita(18, 19, 13);
+Motor esquerda(17, 16, 26, 25);  // GPIO 25: pino de direção do encoder esq
+Motor direita(18, 19, 14, 27);   // GPIO 27: pino de direção do encoder dir
 
 Controles controles(
   36,
@@ -44,13 +44,13 @@ void setup() {
   esquerda.startEncoderTask();
   direita.startEncoderTask();
 
-  if (!tela.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println("SSD1306 allocation failed");
-    for (;;) {
-      Serial.println("Falha ao conectar com a tela");
-      delay(1000);
-    };  // Don't proceed, loop forever
-  }
+  // if (!tela.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+  //   Serial.println("SSD1306 allocation failed");
+  //   for (;;) {
+  //     Serial.println("Falha ao conectar com a tela");
+  //     delay(1000);
+  //   };  // Don't proceed, loop forever
+  // }
 
   tela.clearDisplay();
 

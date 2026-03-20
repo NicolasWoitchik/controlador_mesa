@@ -1,12 +1,15 @@
 #include "Motor.h"
 #include "Arduino.h"
+#include "driver/gpio.h"
+#include "esp32-hal-ledc.h"
 #include <Preferences.h>
 
-Motor::Motor(int outputSobe, int outputDesce, int encoderPin) {
+Motor::Motor(int outputSobe, int outputDesce, int encoderPin, int encoderPinDir) {
   this->_outputSobe = outputSobe;
   this->_outputDesce = outputDesce;
   this->_velocidade = 255;
   this->_encoderPin = encoderPin;
+  this->_encoderPinDir = encoderPinDir;
   this->_direcao = PARAR;
   this->_ultimoPulsoTime = 0;
   this->_pulsosCalibrados = 6800;
@@ -18,8 +21,14 @@ void Motor::begin() {
   pinMode(this->_outputSobe, OUTPUT);
   pinMode(this->_outputDesce, OUTPUT);
 
-  ESP32Encoder::useInternalWeakPullResistors = puType::up;
-  this->_encoder.attachSingleEdge(this->_encoderPin, -1);
+  pinMode(this->_encoderPin, INPUT_PULLUP);
+  ESP32Encoder::useInternalWeakPullResistors = puType::none;
+  this->_encoder.attachSingleEdge(this->_encoderPin, this->_encoderPinDir);
+  // A lib seta encoderPinDir como INPUT — reconfigurar como INPUT_OUTPUT
+  // para que o PCNT leia o nivel que estamos acionando via digitalWrite.
+  // GPIO_MODE_INPUT_OUTPUT = output driver ativo + input buffer habilitado.
+  gpio_set_level((gpio_num_t)this->_encoderPinDir, 0);
+  gpio_set_direction((gpio_num_t)this->_encoderPinDir, GPIO_MODE_INPUT_OUTPUT);
 
   // Carrega pulsos calibrados e steps salvos da NVS
   Preferences prefs;
@@ -27,9 +36,10 @@ void Motor::begin() {
   snprintf(keyP, sizeof(keyP), "p%d", this->_encoderPin);
   snprintf(keyS, sizeof(keyS), "s%d", this->_encoderPin);
   prefs.begin("motor", true);  // read-only
-  this->_pulsosCalibrados = prefs.getInt(keyP, 6800);
+  int savedPulsos = prefs.getInt(keyP, 6800);
   int savedSteps = prefs.getInt(keyS, 0);
   prefs.end();
+  this->_pulsosCalibrados = (savedPulsos > 0) ? savedPulsos : 6800;
 
   // Valida: steps salvos devem estar entre 0 e pulsosCalibrados
   if (savedSteps >= 0 && savedSteps <= this->_pulsosCalibrados) {
@@ -40,21 +50,42 @@ void Motor::begin() {
 }
 
 void Motor::subir() {
+  // analogWrite usa LEDC: digitalWrite no pino inativo NÃO desliga o PWM — ambos podem ficar ativos.
+  if (this->_direcao != SUBIR) {
+    ledcWrite(this->_outputSobe, 0);
+    ledcWrite(this->_outputDesce, 0);
+    digitalWrite(this->_outputSobe, LOW);
+    digitalWrite(this->_outputDesce, LOW);
+    delayMicroseconds(MOTOR_DEAD_TIME_US);
+  }
   this->_direcao = SUBIR;
   this->_ultimoPulsoTime = millis();
+  digitalWrite(this->_encoderPinDir, LOW);  // PCNT: ctrl LOW = conta pra cima
+  ledcWrite(this->_outputDesce, 0);
   digitalWrite(this->_outputDesce, LOW);
   analogWrite(this->_outputSobe, this->_velocidade);
 }
 
 void Motor::descer() {
+  if (this->_direcao != DESCER) {
+    ledcWrite(this->_outputSobe, 0);
+    ledcWrite(this->_outputDesce, 0);
+    digitalWrite(this->_outputSobe, LOW);
+    digitalWrite(this->_outputDesce, LOW);
+    delayMicroseconds(MOTOR_DEAD_TIME_US);
+  }
   this->_direcao = DESCER;
   this->_ultimoPulsoTime = millis();
+  digitalWrite(this->_encoderPinDir, HIGH);  // PCNT: ctrl HIGH = conta pra baixo
+  ledcWrite(this->_outputSobe, 0);
   digitalWrite(this->_outputSobe, LOW);
   analogWrite(this->_outputDesce, this->_velocidade);
 }
 
 void Motor::parar() {
   this->_direcao = PARAR;
+  ledcWrite(this->_outputSobe, 0);
+  ledcWrite(this->_outputDesce, 0);
   digitalWrite(this->_outputSobe, LOW);
   digitalWrite(this->_outputDesce, LOW);
 }
@@ -72,6 +103,7 @@ void Motor::setSteps(int s) {
 }
 
 float Motor::getPosicaoEmCentimetros() {
+  if (this->_pulsosCalibrados <= 0) return 84.0f;
   const float comprimentoAste = 60.0;
   float resolucaoSensor = comprimentoAste / (float)this->_pulsosCalibrados;
   return (float)this->getSteps() * resolucaoSensor + 84.0f;
@@ -92,9 +124,11 @@ int Motor::getVelocidade() const {
 void Motor::setVelocidade(int v) {
   _velocidade = constrain(v, 0, 255);
   if (_direcao == SUBIR) {
+    ledcWrite(_outputDesce, 0);
     digitalWrite(_outputDesce, LOW);
     analogWrite(_outputSobe, _velocidade);
   } else if (_direcao == DESCER) {
+    ledcWrite(_outputSobe, 0);
     digitalWrite(_outputSobe, LOW);
     analogWrite(_outputDesce, _velocidade);
   }

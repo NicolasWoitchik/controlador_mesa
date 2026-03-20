@@ -112,19 +112,19 @@ def processar_linha(linha: str):
         mqtt_client.publish(TOPIC_INFO, json.dumps(data))
         return
 
-    if tipo == "status":
-        if VERBOSE:
-            print(f"[STATUS] pos={data.get('posicao')} status={data.get('status')} "
-                  f"stepsE={data.get('stepsE')} stepsD={data.get('stepsD')} "
-                  f"erroSync={data.get('erroSync')} velE={data.get('velE')} velD={data.get('velD')}", flush=True)
-        if "status" in data:
-            mqtt_client.publish(TOPIC_STATUS, data["status"])
-        if "posicao" in data:
-            mqtt_client.publish(TOPIC_POSICAO, f"{data['posicao']:.2f}")
-        if "stepsE" in data:
-            mqtt_client.publish(TOPIC_STEPS_E, str(data["stepsE"]))
-        if "stepsD" in data:
-            mqtt_client.publish(TOPIC_STEPS_D, str(data["stepsD"]))
+    # if tipo == "status":
+    #     if VERBOSE:
+    #         print(f"[STATUS] pos={data.get('posicao')} status={data.get('status')} "
+    #               f"stepsE={data.get('stepsE')} stepsD={data.get('stepsD')} "
+    #               f"erroSync={data.get('erroSync')} velE={data.get('velE')} velD={data.get('velD')}", flush=True)
+    #     if "status" in data:
+    #         mqtt_client.publish(TOPIC_STATUS, data["status"])
+    #     if "posicao" in data:
+    #         mqtt_client.publish(TOPIC_POSICAO, f"{data['posicao']:.2f}")
+    #     if "stepsE" in data:
+    #         mqtt_client.publish(TOPIC_STEPS_E, str(data["stepsE"]))
+    #     if "stepsD" in data:
+    #         mqtt_client.publish(TOPIC_STEPS_D, str(data["stepsD"]))
 
     elif tipo == "calibracao":
         payload = json.dumps({
